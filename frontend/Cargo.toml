@@ -1,0 +1,17 @@
+[package]
+name = "aurora-alert-frontend"
+version = "0.1.0"
+edition = "2021"
+description = "Front end web app for Aurora Alert"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+keywords = ["yew", "trunk"]
+categories = ["gui", "wasm", "web-programming"]
+
+[dependencies]
+gloo-console = "0.2"
+reqwest = { version = "0.11", features = [ "json" ] }
+serde = { version = "1.0", features = [ "derive" ] }
+wasm-bindgen = "0.2"
+yew = "0.19"
+yew-hooks = "0.1.46"
