@@ -1,0 +1,3 @@
+[env]
+# absolute path to the workspace root, but BEWARE it has a leading and trailing '/'
+CARGO_WORKSPACE_DIRECTORY = { value = "", relative = true }

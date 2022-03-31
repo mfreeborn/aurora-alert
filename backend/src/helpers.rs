@@ -1,8 +1,6 @@
 use crate::db;
 use crate::types;
 
-
-
 pub fn should_alert_user(
     user: &db::UserWithLocationsModel,
     alert_level: &types::AlertLevel,

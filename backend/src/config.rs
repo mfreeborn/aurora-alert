@@ -10,7 +10,12 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> anyhow::Result<Self> {
+        dotenv::from_filename("./backend/.env").ok();
         let err_context = "is a required variable";
+
+        // necessary for composing DATABASE_URL
+        let _workspace_root = var("CARGO_WORKSPACE_DIRECTORY")
+            .with_context(|| format!("{} {}", "CARGO_WORKSPACE_DIRECTORY", err_context))?;
         let database_url =
             var("DATABASE_URL").with_context(|| format!("{} {}", "DATABASE_URL", err_context))?;
         let open_weather_api_key = var("OPEN_WEATHER_API_KEY")

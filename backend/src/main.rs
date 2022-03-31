@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
     pub static CONFIG: Lazy<config::Config> = Lazy::new(|| match config::Config::new() {
         Ok(config) => config,
         Err(e) => {
-            log::warn!("Error loading config: {}", e);
+            eprintln!("Error loading config: {}", e);
             std::process::exit(1);
         }
     });
