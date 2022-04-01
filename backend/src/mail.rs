@@ -12,96 +12,6 @@ use lettre::{
 pub type Transport = AsyncSmtpTransport<Tokio1Executor>;
 pub type Extractor = web::Data<Transport>;
 
-pub struct Email {
-    pub message: Message,
-}
-
-impl Email {
-    fn build_message(subject: &str, to_address: &str, body: String) -> anyhow::Result<Message> {
-        let email = Message::builder()
-            .header(header::ContentType::parse("text/html; charset=utf8")?)
-            .from("Aurora Alert <aurora.alert.app@gmail.com>".parse()?)
-            .to(to_address.parse()?)
-            .subject(subject)
-            .body(body)?;
-
-        Ok(email)
-    }
-
-    pub fn build_verify(
-        user: &db::UserWithLocationsModel,
-        template_engine: &templates::Engine,
-    ) -> Result<Self, errors::ApiError> {
-        let template = templates::Template::Verify;
-        let context =
-            templates::Context::from_serialize(user).map_err(|e| errors::ApiError::Template {
-                context: format!("Error creating context for '{}' template: {}", &template, e),
-            })?;
-
-        let body =
-            template
-                .render(&context, template_engine)
-                .map_err(|e| errors::ApiError::Template {
-                    context: format!("Error rendering '{}' template: {}", &template, e),
-                })?;
-
-        let message =
-            Self::build_message("Welcome to Aurora Alert", &user.email, body).map_err(|e| {
-                errors::ApiError::Email {
-                    context: format!("Error building email: {}", e),
-                }
-            })?;
-
-        Ok(Self { message })
-    }
-
-    pub fn build_alert(
-        user: &db::UserWithLocationsModel,
-        alert_level: &types::AlertLevel,
-        template_engine: &templates::Engine,
-    ) -> Result<Self, errors::ApiError> {
-        let template = templates::Template::Alert;
-        let mut context =
-            templates::Context::from_serialize(user).map_err(|e| errors::ApiError::Template {
-                context: format!("Error creating context for '{}' template: {}", &template, e),
-            })?;
-        context.insert("alert_level", alert_level);
-
-        let body =
-            template
-                .render(&context, template_engine)
-                .map_err(|e| errors::ApiError::Template {
-                    context: format!("Error rendering '{}' template: {}", &template, e),
-                })?;
-
-        let message = Self::build_message(
-            &format!("Aurora alert level is now {alert_level}"),
-            &user.email,
-            body,
-        )
-        .map_err(|e| errors::ApiError::Email {
-            context: format!("Error building email: {}", e),
-        })?;
-
-        Ok(Self { message })
-    }
-
-    pub fn send(self, mailer: Transport) {
-        actix_rt::spawn(async move {
-            match mailer.send(self.message.clone()).await {
-                Ok(response) => log::info!("Email sent succesfully\n:{response:?}"),
-                Err(e) => {
-                    log::warn!(
-                        "Error sending email to user: {}\nThe email message was:\n{:#?}",
-                        e,
-                        self.message
-                    )
-                }
-            }
-        });
-    }
-}
-
 pub fn build_mailer(username: &str, password: &str) -> anyhow::Result<Transport> {
     let creds = Credentials::new(username.to_owned(), password.to_owned());
     let mailer = Transport::relay("smtp.gmail.com")?
@@ -109,4 +19,158 @@ pub fn build_mailer(username: &str, password: &str) -> anyhow::Result<Transport>
         .build();
 
     Ok(mailer)
+}
+
+pub struct AlertBuilder {
+    template: templates::Template,
+    to_address: String,
+}
+
+impl AlertBuilder {
+    fn new(to_address: &str) -> Self {
+        Self {
+            template: templates::Template::Alert,
+            to_address: to_address.to_string(),
+        }
+    }
+
+    pub fn add_context(
+        self,
+        user: &db::UserWithLocationsModel,
+        alert_level: &types::AlertLevel,
+    ) -> Result<RenderableEmailBuilder, errors::ApiError> {
+        let mut context =
+            templates::Context::from_serialize(user).map_err(|e| errors::ApiError::Template {
+                context: format!(
+                    "Error creating context for '{}' template: {}",
+                    &self.template, e
+                ),
+            })?;
+        context.insert("alert_level", alert_level);
+
+        Ok(RenderableEmailBuilder {
+            template: self.template,
+            to_address: self.to_address,
+            subject: format!("Aurora alert level is now {alert_level}"),
+            context,
+        })
+    }
+}
+
+pub struct VerifyUserBuilder {
+    template: templates::Template,
+    to_address: String,
+    subject: String,
+}
+
+impl VerifyUserBuilder {
+    fn new(to_address: &str) -> Self {
+        Self {
+            template: templates::Template::VerifyUser,
+            to_address: to_address.to_string(),
+            subject: String::from("Welcome to Aurora Alert"),
+        }
+    }
+
+    pub fn add_context(
+        self,
+        user: &db::UserWithLocationsModel,
+    ) -> Result<RenderableEmailBuilder, errors::ApiError> {
+        let context =
+            templates::Context::from_serialize(user).map_err(|e| errors::ApiError::Template {
+                context: format!(
+                    "Error creating context for '{}' template: {}",
+                    &self.template, e
+                ),
+            })?;
+
+        Ok(RenderableEmailBuilder {
+            template: self.template,
+            to_address: self.to_address,
+            subject: self.subject,
+            context,
+        })
+    }
+}
+
+pub struct RenderableEmailBuilder {
+    template: templates::Template,
+    to_address: String,
+    subject: String,
+    context: templates::Context,
+}
+
+impl RenderableEmailBuilder {
+    pub fn render_body(
+        self,
+        template_engine: &templates::Engine,
+    ) -> Result<RenderedEmailBuilder, errors::ApiError> {
+        let body = self.template.render(&self.context, template_engine)?;
+
+        Ok(RenderedEmailBuilder {
+            to_address: self.to_address,
+            subject: self.subject,
+            body,
+        })
+    }
+}
+
+pub struct RenderedEmailBuilder {
+    to_address: String,
+    subject: String,
+    body: String,
+}
+
+impl RenderedEmailBuilder {
+    fn build(&self) -> anyhow::Result<Message> {
+        let email = Message::builder()
+            .header(header::ContentType::parse("text/html; charset=utf8")?)
+            .from("Aurora Alert <aurora.alert.app@gmail.com>".parse()?)
+            .to(self.to_address.parse()?)
+            .subject(self.subject.clone())
+            .body(self.body.clone())?;
+
+        Ok(email)
+    }
+
+    pub fn build_email(self) -> Result<SendableEmail, errors::ApiError> {
+        let email = self.build().map_err(|e| errors::ApiError::Email {
+            context: format!("Error building email {}", e),
+        })?;
+
+        Ok(SendableEmail { email })
+    }
+}
+
+pub struct SendableEmail {
+    email: Message,
+}
+
+impl SendableEmail {
+    pub fn send(self, mailer: Transport) {
+        actix_rt::spawn(async move {
+            match mailer.send(self.email.clone()).await {
+                Ok(response) => log::info!("Email sent succesfully\n:{response:?}"),
+                Err(e) => {
+                    log::warn!(
+                        "Error sending email to user: {}\nThe email message was:\n{:#?}",
+                        e,
+                        self.email
+                    )
+                }
+            }
+        });
+    }
+}
+
+pub struct Email;
+
+impl Email {
+    pub fn new_alert(to_address: &str) -> AlertBuilder {
+        AlertBuilder::new(to_address)
+    }
+
+    pub fn new_verify_user(to_address: &str) -> VerifyUserBuilder {
+        VerifyUserBuilder::new(to_address)
+    }
 }

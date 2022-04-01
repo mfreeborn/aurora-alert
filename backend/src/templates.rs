@@ -1,3 +1,5 @@
+use crate::errors;
+
 use actix_web::web;
 use derive_more::Display;
 
@@ -15,11 +17,19 @@ pub enum Template {
     #[display(fmt = "alert.html")]
     Alert,
     #[display(fmt = "verify.html")]
-    Verify,
+    VerifyUser,
 }
 
 impl Template {
-    pub fn render(&self, context: &Context, template_engine: &Engine) -> anyhow::Result<String> {
-        Ok(template_engine.render(&self.to_string(), context)?)
+    pub fn render(
+        &self,
+        context: &Context,
+        template_engine: &Engine,
+    ) -> Result<String, errors::ApiError> {
+        Ok(template_engine
+            .render(&self.to_string(), context)
+            .map_err(|e| errors::ApiError::Template {
+                context: format!("Error rendering '{}' template: {}", self, e),
+            })?)
     }
 }

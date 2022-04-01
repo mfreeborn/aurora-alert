@@ -99,7 +99,11 @@ async fn register(
                 context: format!("User insert failed: {}", e),
             })?;
 
-    mail::Email::build_verify(&user, template_engine.get_ref())?.send(mailer.get_ref().clone());
+    mail::Email::new_verify_user(&user.email)
+        .add_context(&user)?
+        .render_body(template_engine.get_ref())?
+        .build_email()?
+        .send(mailer.get_ref().clone());
 
     Ok(JsonResponse::new("User registered succesfully"))
 }

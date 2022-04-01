@@ -47,12 +47,11 @@ async fn maybe_alert(
         let verified_users = db::get_verified_users(pool).await?;
         for user in &verified_users {
             if helpers::should_alert_user(user, &live_alert_level.site_status.alert_level) {
-                mail::Email::build_alert(
-                    user,
-                    &live_alert_level.site_status.alert_level,
-                    template_engine,
-                )?
-                .send(mailer.clone());
+                mail::Email::new_alert(&user.email)
+                    .add_context(&user, &live_alert_level.site_status.alert_level)?
+                    .render_body(template_engine)?
+                    .build_email()?
+                    .send(mailer.clone());
                 db::update_user_last_alerted_at(&user.user_id, pool).await?;
             }
         }
