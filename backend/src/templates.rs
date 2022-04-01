@@ -25,10 +25,10 @@ impl Template {
         context: &Context,
         template_engine: &Engine,
     ) -> Result<String, errors::ApiError> {
-        Ok(template_engine
+        template_engine
             .render(&self.to_string(), context)
             .map_err(|e| errors::ApiError::Template {
                 context: format!("Error rendering '{}' template: {}", self, e),
-            })?)
+            })
     }
 }

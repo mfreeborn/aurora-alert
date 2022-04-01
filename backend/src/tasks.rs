@@ -48,7 +48,7 @@ async fn maybe_alert(
         for user in &verified_users {
             if helpers::should_alert_user(user, &live_alert_level.site_status.alert_level) {
                 mail::Email::new_alert(&user.email)
-                    .add_context(&user, &live_alert_level.site_status.alert_level)?
+                    .add_context(user, &live_alert_level.site_status.alert_level)?
                     .render_body(template_engine)?
                     .build_email()?
                     .send(mailer.clone());
