@@ -19,7 +19,9 @@ fn switch(routes: &Route) -> Html {
 
 #[function_component(Router)]
 pub fn router() -> Html {
-    html! {<BrowserRouter>
-        <Switch<Route> render={Switch::render(switch)} />
-    </BrowserRouter>}
+    html! {
+        <BrowserRouter>
+            <Switch<Route> render={Switch::render(switch)} />
+        </BrowserRouter>
+    }
 }
