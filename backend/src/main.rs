@@ -9,10 +9,11 @@ mod tasks;
 mod templates;
 mod types;
 
+use std::error::Error;
+
 use actix_cors::Cors;
 use actix_web::{error, middleware, rt as actix_rt, web, App, HttpResponse, HttpServer};
 use once_cell::sync::Lazy;
-use std::error::Error;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {

@@ -1,8 +1,8 @@
 use gloo_console as console;
 use yew::prelude::*;
+use yew_hooks::use_async;
 
 use crate::services::subscribe;
-use yew_hooks::use_async;
 
 #[function_component(MainContent)]
 pub fn main_content() -> Html {

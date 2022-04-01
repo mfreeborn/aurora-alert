@@ -1,13 +1,13 @@
-use crate::db;
-use crate::errors;
-use crate::templates;
-use crate::types;
-
 use actix_web::{rt as actix_rt, web};
 use lettre::{
     message::header, transport::smtp::authentication::Credentials, AsyncSmtpTransport,
     AsyncTransport, Message, Tokio1Executor,
 };
+
+use crate::db;
+use crate::errors;
+use crate::templates;
+use crate::types;
 
 pub type Transport = AsyncSmtpTransport<Tokio1Executor>;
 pub type Extractor = web::Data<Transport>;

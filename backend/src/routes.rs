@@ -1,10 +1,10 @@
+use actix_web::{get, post, web, Responder, Result};
+use serde::{Deserialize, Serialize};
+
 use crate::db;
 use crate::errors;
 use crate::mail;
 use crate::templates;
-
-use actix_web::{get, post, web, Responder, Result};
-use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 pub struct JsonResponse {

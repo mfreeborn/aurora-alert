@@ -1,10 +1,11 @@
-use crate::apis;
-use crate::types;
+use std::collections::HashMap;
 
 use actix_web::web;
 use serde::{Deserialize, Serialize};
 use sqlx::{self, sqlite::SqlitePoolOptions, SqlitePool};
-use std::collections::HashMap;
+
+use crate::apis;
+use crate::types;
 
 pub type Pool = SqlitePool;
 pub type Extractor = web::Data<Pool>;

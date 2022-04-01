@@ -1,11 +1,11 @@
+use actix_web::rt as actix_rt;
+
 use crate::apis;
 use crate::db;
 use crate::helpers;
 use crate::mail;
 use crate::templates;
 use crate::types;
-
-use actix_web::rt as actix_rt;
 
 async fn maybe_alert(
     pool: &db::Pool,

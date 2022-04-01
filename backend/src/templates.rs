@@ -1,9 +1,8 @@
-use crate::errors;
-
 use actix_web::web;
 use derive_more::Display;
-
 pub use tera::{Context, Tera};
+
+use crate::errors;
 
 pub type Engine = Tera;
 pub type Extractor = web::Data<Engine>;

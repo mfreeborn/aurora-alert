@@ -1,7 +1,7 @@
-use crate::types;
-
 use anyhow;
 use quick_xml;
+
+use crate::types;
 
 pub async fn get_alert_level() -> anyhow::Result<types::CurrentStatus> {
     let status_url = "https://aurorawatch-api.lancs.ac.uk/0.2/status/current-status.xml";

@@ -1,7 +1,8 @@
+use std::fmt;
+
 use gloo_console as console;
 use reqwest;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 pub async fn subscribe() -> Result<SiteStatus, MyError> {

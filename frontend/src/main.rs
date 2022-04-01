@@ -1,6 +1,5 @@
 use aurora_alert_frontend::components::header::Header;
 use aurora_alert_frontend::components::main_content::MainContent;
-
 use yew::prelude::*;
 
 #[function_component(App)]

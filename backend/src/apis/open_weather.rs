@@ -1,8 +1,8 @@
-use crate::types;
-
 use anyhow;
 use reqwest;
 use serde::{Deserialize, Serialize};
+
+use crate::types;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Coord {
