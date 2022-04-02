@@ -1,13 +1,12 @@
 use yew::prelude::*;
 
 use crate::hooks::use_query_params;
-use crate::routes::{LinkHome, RedirectNotFound};
+use crate::routes::{LinkHome, RedirectInternalServerError, RedirectNotFound};
 use crate::services::user::unsubscribe;
 use crate::types::user::{UnsubscribeParams, UnsubscribeUserWrapper};
 
 #[function_component(Unsubscribe)]
 pub fn unsubscribe() -> Html {
-    log::info!("render");
     let params: UnsubscribeParams = match use_query_params() {
         Ok(params) => params,
         Err(e) => {
@@ -23,45 +22,28 @@ pub fn unsubscribe() -> Html {
             yew_hooks::UseAsyncOptions::enable_auto(),
         )
     };
+
     {
         let state = state.clone();
-        log::info!("data: {:?}", state.data);
+        if let Some(e) = &state.error {
+            log::warn!("Error within unsubscribe callback: {e}");
+            return html! { <RedirectInternalServerError /> };
+        }
     }
     html! {
-        <>
-            {
-                if state.loading {
-                    html! {<div>{"Loading..."}</div>}
-                } else {
-                    html! { <div></div> }
+        {
+            if let Some(_) = &state.data {
+                html! {
+                <div>
+                    <p>{"Thank you for using Aurora Alert, you have now been unsubscribed and will no longer receive email alerts"}</p>
+                    <LinkHome text={"Return to the homepage"} />
+                </div>
+                }
+            } else {
+                html! {
+                    <div></div>
                 }
             }
-            {
-                if let Some(_) = &state.data {
-                    html! {
-                        <div>
-                            <p>{"Thank you for using Aurora Alert, you have now been unsubscribed and will no longer receive email alerts"}</p>
-                            <LinkHome text={"Return to the homepage"} />
-                        </div>
-                    }
-                } else {
-                    html! {
-                        <div></div>
-                    }
-                }
-            }
-            {
-                if let Some(e) = &state.error {
-                    log::warn!("{e}");
-                    html! {
-                        <RedirectNotFound />
-                    }
-                } else {
-                    html! {
-                        <div></div>
-                    }
-                }
-            }
-        </>
+        }
     }
 }

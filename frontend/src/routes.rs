@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::pages::{Home, PageNotFound, Unsubscribe};
+use crate::pages::{Home, InternalServerError, PageNotFound, Unsubscribe};
 
 #[derive(Clone, PartialEq, Routable)]
 pub enum Route {
@@ -9,6 +9,8 @@ pub enum Route {
     Home,
     #[at("/unsubscribe")]
     Unsubscribe,
+    #[at("/internal-server-error")]
+    InternalServerError,
     #[not_found]
     #[at("/not-found")]
     NotFound,
@@ -20,6 +22,7 @@ fn switch(routes: &Route) -> Html {
         Route::Unsubscribe => {
             html! { <Unsubscribe  /> }
         }
+        Route::InternalServerError => html! { <InternalServerError /> },
         Route::NotFound => html! { <PageNotFound /> },
     }
 }
@@ -35,6 +38,13 @@ pub fn page_switch() -> Html {
 pub fn redirect_not_found() -> Html {
     html! {
         <Redirect<Route> to={Route::NotFound} />
+    }
+}
+
+#[function_component(RedirectInternalServerError)]
+pub fn redirect_internal_server_error() -> Html {
+    html! {
+        <Redirect<Route> to={Route::InternalServerError} />
     }
 }
 
