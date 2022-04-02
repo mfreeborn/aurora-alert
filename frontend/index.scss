@@ -9,6 +9,10 @@ body {
   font-size: 1.5rem;
 }
 
+a {
+  text-decoration: none;
+}
+
 .container {
   padding: 0px;
   margin: 0px;
@@ -22,4 +26,8 @@ body {
   padding: 0rem 1rem;
   width: 100%;
   margin: 0px;
+}
+
+.page-content {
+  margin: 1rem
 }

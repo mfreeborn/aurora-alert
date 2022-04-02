@@ -1,4 +1,3 @@
-use gloo_console as console;
 use yew::prelude::*;
 use yew_hooks::use_async;
 
@@ -9,10 +8,10 @@ pub fn main_content() -> Html {
     let state = use_async(async move {
         let level = subscribe().await;
         if let Ok(lev) = &level {
-            console::log!("ok");
-            console::log!(lev.clone());
+            //console::log!("ok");
+            //console::log!(lev.clone());
         } else {
-            console::log!("Fail");
+            //console::log!("Fail");
         };
         level
     });

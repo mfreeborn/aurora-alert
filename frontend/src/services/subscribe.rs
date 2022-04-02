@@ -1,6 +1,5 @@
 use std::fmt;
 
-use gloo_console as console;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -12,7 +11,7 @@ pub async fn subscribe() -> Result<SiteStatus, MyError> {
         .await;
     println!("{:#?}", response);
     if let Ok(data) = response {
-        console::log!("hi");
+        log::info!("hi");
         let d = data.json::<SiteStatus>().await.unwrap();
         Ok(d)
     } else {
