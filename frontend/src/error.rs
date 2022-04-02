@@ -1,6 +1,6 @@
 use thiserror::Error as ThisError;
 
-/// Define all possible errors
+#[allow(clippy::enum_variant_names)]
 #[derive(ThisError, Clone, Debug, PartialEq)]
 pub enum Error {
     /// 401

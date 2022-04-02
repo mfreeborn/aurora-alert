@@ -6,7 +6,7 @@ where
     T: DeserializeOwned,
 {
     let location = use_location();
-    let raw_params = location.search.strip_prefix("?").unwrap_or_else(|| "");
+    let raw_params = location.search.strip_prefix('?').unwrap_or("");
     let parsed_params = serde_urlencoded::from_str(raw_params)?;
 
     Ok(parsed_params)

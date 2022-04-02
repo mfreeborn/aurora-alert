@@ -1,6 +1,5 @@
 use std::fmt;
 
-use reqwest;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::wasm_bindgen;
 

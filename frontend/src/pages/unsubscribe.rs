@@ -16,7 +16,7 @@ pub fn unsubscribe() -> Html {
     };
 
     let state = {
-        let params = params.clone();
+        //let params = params.clone();
         yew_hooks::use_async_with_options(
             async move { unsubscribe::<UnsubscribeUserWrapper>(params.user_id, params.email).await },
             yew_hooks::UseAsyncOptions::enable_auto(),
@@ -32,7 +32,7 @@ pub fn unsubscribe() -> Html {
     }
     html! {
         {
-            if let Some(_) = &state.data {
+            if state.data.is_some() {
                 html! {
                 <div>
                     <p>{"Thank you for using Aurora Alert, you have now been unsubscribed and will no longer receive email alerts"}</p>
