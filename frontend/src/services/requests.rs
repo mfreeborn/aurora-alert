@@ -53,7 +53,7 @@ where
 pub async fn post<T, B>(url: String, body: B) -> Result<T, Error>
 where
     T: DeserializeOwned + Debug + 'static,
-    B: Serialize + std::fmt::Debug,
+    B: Serialize + Debug,
 {
     request(reqwest::Method::POST, url, body).await
 }

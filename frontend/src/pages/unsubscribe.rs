@@ -16,7 +16,6 @@ pub fn unsubscribe() -> Html {
     };
 
     let state = {
-        //let params = params.clone();
         yew_hooks::use_async_with_options(
             async move { unsubscribe::<UnsubscribeUserWrapper>(params.user_id, params.email).await },
             yew_hooks::UseAsyncOptions::enable_auto(),

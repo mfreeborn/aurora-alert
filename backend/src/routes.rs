@@ -85,7 +85,7 @@ async fn verify(
     }
 }
 
-#[post("/register")]
+#[post("/users")]
 async fn register(
     user: web::Json<db::RegisterUser>,
     pool: db::Extractor,
