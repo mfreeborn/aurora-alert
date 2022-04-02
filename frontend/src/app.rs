@@ -11,7 +11,7 @@ pub fn app() -> Html {
             <BrowserRouter>
                 <Header />
                 <div class={classes!("page-content")}>
-                    <routes::Switch />
+                    <routes::PageSwitch />
                 </div>
             </BrowserRouter>
         </div>

@@ -1,5 +1,5 @@
-use yew::{function_component, html, Html};
-use yew_router::{Routable, Switch as YewSwitch};
+use yew::prelude::*;
+use yew_router::prelude::*;
 
 use crate::pages::{Home, PageNotFound, Unsubscribe};
 
@@ -7,26 +7,45 @@ use crate::pages::{Home, PageNotFound, Unsubscribe};
 pub enum Route {
     #[at("/")]
     Home,
-    #[at("/unsubscribe/:user_id/:email")]
-    Unsubscribe { user_id: String, email: String },
+    #[at("/unsubscribe")]
+    Unsubscribe,
     #[not_found]
-    #[at("/404")]
+    #[at("/not-found")]
     NotFound,
 }
 
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
-        Route::Unsubscribe { user_id, email } => {
-            html! { <Unsubscribe user_id={user_id.to_string()} email={email.to_string()} /> }
+        Route::Unsubscribe => {
+            html! { <Unsubscribe  /> }
         }
         Route::NotFound => html! { <PageNotFound /> },
     }
 }
 
-#[function_component(Switch)]
-pub fn router() -> Html {
+#[function_component(PageSwitch)]
+pub fn page_switch() -> Html {
     html! {
-        <YewSwitch<Route> render={YewSwitch::render(switch)} />
+        <Switch<Route> render={Switch::render(switch)} />
+    }
+}
+
+#[function_component(RedirectNotFound)]
+pub fn redirect_not_found() -> Html {
+    html! {
+        <Redirect<Route> to={Route::NotFound} />
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkHomeProps {
+    pub text: String,
+}
+
+#[function_component(LinkHome)]
+pub fn link_home(props: &LinkHomeProps) -> Html {
+    html! {
+        <Link<Route> to={Route::Home}>{props.text.clone()}</Link<Route>>
     }
 }
