@@ -1,19 +1,14 @@
-use aurora_alert_frontend::components::header::Header;
-use aurora_alert_frontend::components::main_content::MainContent;
-use aurora_alert_frontend::routes;
-use yew::prelude::*;
-use yew_router::prelude::*;
+mod app;
+mod components;
+mod error;
+mod pages;
+mod routes;
+mod services;
 
-#[function_component(App)]
-pub fn app() -> Html {
-    html! {
-        <div class="container">
-            <Header />
-
-        </div>
-    }
-}
+use app::App;
+use services::requests;
 
 fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
     yew::start_app::<App>();
 }

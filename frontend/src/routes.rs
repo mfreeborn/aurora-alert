@@ -1,10 +1,14 @@
-use yew::{function_component, html, prelude::*};
-use yew_router::prelude::*;
+use yew::{function_component, html, Html};
+use yew_router::{Routable, Switch as YewSwitch};
+
+use crate::pages::{Home, PageNotFound, Unsubscribe};
 
 #[derive(Clone, PartialEq, Routable)]
 pub enum Route {
     #[at("/")]
     Home,
+    #[at("/unsubscribe/:user_id/:email")]
+    Unsubscribe { user_id: String, email: String },
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -12,16 +16,17 @@ pub enum Route {
 
 fn switch(routes: &Route) -> Html {
     match routes {
-        Route::Home => html! { <h1>{ "Home" }</h1> },
-        Route::NotFound => html! { <h1>{ "404" }</h1> },
+        Route::Home => html! { <Home /> },
+        Route::Unsubscribe { user_id, email } => {
+            html! { <Unsubscribe user_id={user_id.to_string()} email={email.to_string()} /> }
+        }
+        Route::NotFound => html! { <PageNotFound /> },
     }
 }
 
-#[function_component(Router)]
+#[function_component(Switch)]
 pub fn router() -> Html {
     html! {
-        <BrowserRouter>
-            <Switch<Route> render={Switch::render(switch)} />
-        </BrowserRouter>
+        <YewSwitch<Route> render={YewSwitch::render(switch)} />
     }
 }

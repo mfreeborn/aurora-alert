@@ -1,27 +1,18 @@
 use yew::prelude::*;
+use yew_router::components::Link;
 
-pub struct Header;
+use crate::routes::Route;
 
-pub enum Msg {}
-
-impl Component for Header {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <div class="row header">
-                <div class="col-auto">
-                    <span>{ "Aurora Alert" }</span>
-                </div>
-                <div class="col-auto">
-                    <span>{ "2022" }</span>
-                </div>
+#[function_component(Header)]
+pub fn header() -> Html {
+    html! {
+        <div class="row header">
+            <div class="col-auto">
+                <Link<Route> to={Route::Home}>{ "Aurora Alert" }</Link<Route>>
             </div>
-        }
+            <div class="col-auto">
+                <span>{ "2022" }</span>
+            </div>
+        </div>
     }
 }
