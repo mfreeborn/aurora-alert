@@ -24,6 +24,8 @@ CREATE TABLE locations (
     updated_at TEXT NOT NULL
 );
 
+CREATE INDEX idx_locations_name ON locations (name COLLATE NOCASE);
+
 CREATE TRIGGER update_location_updated_at
     AFTER UPDATE
     ON locations
