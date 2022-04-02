@@ -7,19 +7,37 @@ use crate::errors;
 pub type Engine = Tera;
 pub type Extractor = web::Data<Engine>;
 
-pub fn build_template_engine(template_directory: &str) -> Result<Engine, tera::Error> {
-    Tera::new(template_directory)
+pub fn build_template_engine(templates_dir: &str) -> Result<Engine, tera::Error> {
+    // instantiating Tera this way ensures that we can guarantee all the templates are
+    // loaded succesfully as soon as the app starts
+    let mut engine = Tera::default();
+    for template in Template::all_variants() {
+        let template_path = format!("{templates_dir}/{template}");
+        engine.add_template_file(template_path, Some(&template.to_string()))?;
+    }
+
+    Ok(engine)
 }
 
 #[derive(Display)]
 pub enum Template {
+    #[display(fmt = "base.html")]
+    Base,
     #[display(fmt = "alert.html")]
     Alert,
     #[display(fmt = "verify.html")]
     VerifyUser,
+
+    // beware: this variant *must* remain the last one to be declared
+    __COUNT,
 }
 
 impl Template {
+    const fn all_variants() -> [Self; Self::__COUNT as usize] {
+        // beware: parent templates (i.e. base.html) must appear before child templates
+        [Template::Base, Template::Alert, Template::VerifyUser]
+    }
+
     pub fn render(
         &self,
         context: &Context,

@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     });
 
     pub static TEMPLATES: Lazy<templates::Tera> = Lazy::new(|| {
-        let template_engine = match templates::build_template_engine("src/templates/*.html") {
+        let template_engine = match templates::build_template_engine(&CONFIG.templates_dir) {
             Ok(eng) => eng,
             Err(e) => {
                 log::warn!("Error compiling templates: {}", e);
