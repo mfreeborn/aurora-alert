@@ -1,60 +1,62 @@
-use serde::{Deserialize, Serialize};
 use yew::prelude::*;
-use yew_router::components::Link;
 
-use crate::requests;
-use crate::routes::Route;
-
-#[derive(Deserialize, Debug, Clone, PartialEq)]
-pub struct UnsubscribeUserWrapper {
-    pub message: String,
-}
-
-#[derive(Properties, PartialEq)]
-pub struct UnsubscribeProps {
-    pub user_id: String,
-    pub email: String,
-}
+use crate::hooks::use_query_params;
+use crate::routes::{LinkHome, RedirectNotFound};
+use crate::services::user::unsubscribe;
+use crate::types::user::{UnsubscribeParams, UnsubscribeUserWrapper};
 
 #[function_component(Unsubscribe)]
-pub fn unsubscribe(props: &UnsubscribeProps) -> Html {
-    let UnsubscribeProps { user_id, email } = props;
-
-    let state = {
-        let user_id = user_id.clone();
-        let email = email.clone();
-
-        yew_hooks::use_async(async move {
-            requests::get::<UnsubscribeUserWrapper>(format!(
-                "/unsubscribe?user_id={}&email={}",
-                user_id, email
-            ))
-            .await
-        })
+pub fn unsubscribe() -> Html {
+    let params: UnsubscribeParams = match use_query_params() {
+        Ok(params) => params,
+        Err(e) => {
+            log::warn!("Required parameters not provided: {e}");
+            return html! { <RedirectNotFound />};
+        }
     };
 
-    {
-        let state = state.clone();
-        yew_hooks::use_effect_once(move || {
-            {
-                state.run()
-            }
-            || log::info!("hi")
-        });
-    }
+    let state = {
+        let params = params.clone();
+        yew_hooks::use_async_with_options(
+            async move { unsubscribe::<UnsubscribeUserWrapper>(params.user_id, params.email).await },
+            yew_hooks::UseAsyncOptions::enable_auto(),
+        )
+    };
 
     html! {
         <>
             {
                 if state.loading {
-                    html!{<div>{"hi!"}</div>}
+                    html! {<div>{"Loading..."}</div>}
                 } else {
-                    html!{ <div>{"there"}</div> }
+                    html! { <div></div> }
                 }
             }
-        <div>
-            <p>{"Thank you for using Aurora Alert, you have now been subscribed and will no longer receive email alerts"}</p>
-            <Link<Route> to={Route::Home}>{"Return to the homepage"}</Link<Route>>
-        </div></>
+            {
+                if let Some(_) = &state.data {
+                    html! {
+                        <div>
+                            <p>{"Thank you for using Aurora Alert, you have now been unsubscribed and will no longer receive email alerts"}</p>
+                            <LinkHome text={"Return to the homepage"} />
+                        </div>
+                    }
+                } else {
+                    html! {
+                        <div></div>
+                    }
+                }
+            }
+            {
+                if let Some(_) = &state.error {
+                    html! {
+                        <RedirectNotFound />
+                    }
+                } else {
+                    html! {
+                        <div></div>
+                    }
+                }
+            }
+        </>
     }
 }

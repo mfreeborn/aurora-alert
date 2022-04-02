@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::error::Error;
@@ -43,14 +45,14 @@ where
 
 pub async fn get<T>(url: String) -> Result<T, Error>
 where
-    T: DeserializeOwned + 'static + std::fmt::Debug,
+    T: DeserializeOwned + Debug + 'static,
 {
     request(reqwest::Method::GET, url, ()).await
 }
 
 pub async fn post<T, B>(url: String, body: B) -> Result<T, Error>
 where
-    T: DeserializeOwned + 'static + std::fmt::Debug,
+    T: DeserializeOwned + Debug + 'static,
     B: Serialize + std::fmt::Debug,
 {
     request(reqwest::Method::POST, url, body).await
@@ -58,7 +60,7 @@ where
 
 pub async fn delete<T>(url: String) -> Result<T, Error>
 where
-    T: DeserializeOwned + 'static + std::fmt::Debug,
+    T: DeserializeOwned + Debug + 'static,
 {
-    request(reqwest::Method::POST, url, ()).await
+    request(reqwest::Method::DELETE, url, ()).await
 }
