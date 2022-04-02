@@ -7,6 +7,7 @@ use crate::types::user::{UnsubscribeParams, UnsubscribeUserWrapper};
 
 #[function_component(Unsubscribe)]
 pub fn unsubscribe() -> Html {
+    log::info!("render");
     let params: UnsubscribeParams = match use_query_params() {
         Ok(params) => params,
         Err(e) => {
@@ -22,7 +23,10 @@ pub fn unsubscribe() -> Html {
             yew_hooks::UseAsyncOptions::enable_auto(),
         )
     };
-
+    {
+        let state = state.clone();
+        log::info!("data: {:?}", state.data);
+    }
     html! {
         <>
             {
@@ -47,7 +51,8 @@ pub fn unsubscribe() -> Html {
                 }
             }
             {
-                if let Some(_) = &state.error {
+                if let Some(e) = &state.error {
+                    log::warn!("{e}");
                     html! {
                         <RedirectNotFound />
                     }

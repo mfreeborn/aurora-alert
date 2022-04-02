@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct UnsubscribeUserWrapper {
-    pub message: String,
+    pub payload: String,
 }
 
 #[derive(Clone, Deserialize)]

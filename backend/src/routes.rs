@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, Responder, Result};
+use actix_web::{delete, get, post, web, Responder, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::db;
@@ -25,7 +25,7 @@ struct UnsubscribeUserParams {
     email: String,
 }
 
-#[get("/unsubscribe")]
+#[delete("/users")]
 async fn unsubscribe(
     user_params: web::Query<UnsubscribeUserParams>,
     pool: db::Extractor,
@@ -38,13 +38,13 @@ async fn unsubscribe(
 
     if let Some(user_id) = user_id {
         Ok(JsonResponse::new(&format!(
-            "User with user_id = {:?} deleted succesfully",
+            "User with user_id = {} deleted succesfully",
             user_id
         )))
     } else {
         Err(errors::ApiError::Database {
             context: format!(
-                "No such user exists with user_id = {:?} and email = {:?}",
+                "No such user exists with user_id = {} and email = {}",
                 user_params.user_id, user_params.email
             ),
         }
