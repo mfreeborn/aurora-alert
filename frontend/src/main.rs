@@ -1,6 +1,7 @@
 mod app;
 mod components;
 mod error;
+mod hooks;
 mod pages;
 mod routes;
 mod services;

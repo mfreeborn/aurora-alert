@@ -303,6 +303,7 @@ dependencies = [
  "log",
  "reqwest",
  "serde",
+ "serde_urlencoded",
  "thiserror",
  "wasm-bindgen",
  "wasm-logger",
