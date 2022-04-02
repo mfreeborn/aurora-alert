@@ -78,7 +78,8 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             // middlewares
             .wrap(middleware::Logger::default())
-            .wrap(Cors::default().allowed_origin("http://localhost"))
+            // .wrap(Cors::default().allowed_origin("http://localhost"))
+            .wrap(Cors::permissive())
             // error handlers
             .app_data(web::QueryConfig::default().error_handler(|err, _req| {
                 error::InternalError::from_response(
