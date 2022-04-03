@@ -1,6 +1,33 @@
 use derive_more::Display;
-use serde::{Deserialize, Serialize};
+use serde::{de::Deserializer, Deserialize, Serialize};
 use serde_repr::Deserialize_repr;
+
+#[derive(Debug, sqlx::Type)]
+#[sqlx(transparent)]
+pub struct SanitisedLikeString(String);
+
+impl SanitisedLikeString {
+    fn new(string: &str) -> Self {
+        let string = string.trim();
+        let string = string.replace("%", "");
+        let string = string.replace("_", "");
+        Self(string)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl<'de> Deserialize<'de> for SanitisedLikeString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: &str = Deserialize::deserialize(deserializer)?;
+        Ok(Self::new(s))
+    }
+}
 
 #[derive(Clone, Debug, Display, Serialize, Deserialize, PartialOrd, PartialEq, sqlx::Type)]
 #[serde(rename_all = "lowercase")]

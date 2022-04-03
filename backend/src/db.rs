@@ -23,7 +23,7 @@ pub struct LocationNameModel {
 }
 
 pub async fn get_locations(
-    search_str: &str,
+    search_str: &types::SanitisedLikeString,
     pool: &Pool,
 ) -> anyhow::Result<Vec<LocationNameModel>> {
     let locations = sqlx::query_as!(
