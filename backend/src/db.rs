@@ -16,6 +16,32 @@ pub fn init_pool(database_url: &str) -> Result<Pool, sqlx::Error> {
         .connect_lazy(database_url)
 }
 
+#[derive(Serialize)]
+pub struct LocationNameModel {
+    pub location_id: i64,
+    pub name: String,
+}
+
+pub async fn get_locations(
+    search_str: &str,
+    pool: &Pool,
+) -> anyhow::Result<Vec<LocationNameModel>> {
+    let locations = sqlx::query_as!(
+        LocationNameModel,
+        r#"
+            SELECT location_id, name
+            FROM locations
+            WHERE name LIKE ? || '%'
+            ORDER BY name DESC
+            LIMIT 5
+        "#,
+        search_str
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(locations)
+}
+
 pub async fn set_user_verified(
     user_id: &str,
     email: &str,
