@@ -10,14 +10,14 @@ CREATE TABLE users (
 CREATE UNIQUE INDEX idx_users_email ON users (email);
 
 CREATE TABLE alert_level (
-    alert_level_id INTEGER PRIMARY KEY,
+    alert_level_id INTEGER PRIMARY KEY NOT NULL,
     alert_level TEXT NOT NULL CHECK(alert_level in ('green', 'yellow', 'amber', 'red')),
     previous_alert_level TEXT NOT NULL CHECK(alert_level in ('green', 'yellow', 'amber', 'red')),
     updated_at TEXT NOT NULL
 );
 
 CREATE TABLE locations (
-    location_id INTEGER PRIMARY KEY,
+    location_id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL UNIQUE,
     weather_description TEXT NOT NULL,
     cloud_cover INTEGER NOT NULL CHECK(0 <= cloud_cover <= 100),
