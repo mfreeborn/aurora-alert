@@ -7,8 +7,7 @@ use serde_repr::Deserialize_repr;
 pub struct SanitisedLikeString(String);
 
 impl SanitisedLikeString {
-    fn new(string: &str) -> Self {
-        let string = string.trim();
+    fn new(string: String) -> Self {
         let string = string.replace("%", "");
         let string = string.replace("_", "");
         Self(string)
@@ -24,7 +23,7 @@ impl<'de> Deserialize<'de> for SanitisedLikeString {
     where
         D: Deserializer<'de>,
     {
-        let s: &str = Deserialize::deserialize(deserializer)?;
+        let s: String = Deserialize::deserialize(deserializer)?;
         Ok(Self::new(s))
     }
 }

@@ -31,3 +31,15 @@ a {
 .page-content {
   margin: 1rem
 }
+
+.icon-button:hover {
+  cursor: pointer;
+  fill: red;
+}
+
+.icon-button {
+  fill: rgb(116, 72, 72);
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+}

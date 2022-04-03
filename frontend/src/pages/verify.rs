@@ -2,12 +2,12 @@ use yew::prelude::*;
 
 use crate::hooks::use_query_params;
 use crate::routes::{LinkHome, RedirectInternalServerError, RedirectNotFound};
-use crate::services::user::unsubscribe;
-use crate::types::user::{UnsubscribeParams, UnsubscribeUserWrapper};
+use crate::services::user::verify;
+use crate::types::user::{VerifyUserParams, VerifyUserWrapper};
 
-#[function_component(Unsubscribe)]
-pub fn unsubscribe() -> Html {
-    let params: UnsubscribeParams = match use_query_params() {
+#[function_component(Verify)]
+pub fn verify() -> Html {
+    let params: VerifyUserParams = match use_query_params() {
         Ok(params) => params,
         Err(e) => {
             log::warn!("Required parameters not provided: {e}");
@@ -17,7 +17,7 @@ pub fn unsubscribe() -> Html {
 
     let state = {
         yew_hooks::use_async_with_options(
-            async move { unsubscribe::<UnsubscribeUserWrapper>(params.user_id, params.email).await },
+            async move { verify::<VerifyUserWrapper>(params.user_id, params.email).await },
             yew_hooks::UseAsyncOptions::enable_auto(),
         )
     };
@@ -25,7 +25,7 @@ pub fn unsubscribe() -> Html {
     {
         let state = state.clone();
         if let Some(e) = &state.error {
-            log::warn!("Error within unsubscribe callback: {e}");
+            log::warn!("Error within verify callback: {e}");
             return html! { <RedirectInternalServerError /> };
         }
     }
@@ -34,8 +34,12 @@ pub fn unsubscribe() -> Html {
             if state.data.is_some() {
                 html! {
                 <div>
-                    <p>{"Thank you for using Aurora Alert, you have now been unsubscribed and will no longer receive email alerts."}</p>
-                    <LinkHome text={"Return to the homepage"} />
+                    <p>{"Thank you for using Aurora Alert, you will now receive email notifications when the alert level reaches a certain threshold."}</p>
+                    <p>
+                        <span>{"Head over the the "}</span>
+                        <LinkHome text={"homepage"} />
+                        <span>{" to see the current aurora alert level."}</span>
+                    </p>
                 </div>
                 }
             } else {

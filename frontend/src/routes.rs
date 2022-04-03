@@ -1,12 +1,14 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::pages::{Home, InternalServerError, PageNotFound, Unsubscribe};
+use crate::pages::{Home, InternalServerError, PageNotFound, Unsubscribe, Verify};
 
 #[derive(Clone, PartialEq, Routable)]
 pub enum Route {
     #[at("/")]
     Home,
+    #[at("/verify")]
+    Verify,
     #[at("/unsubscribe")]
     Unsubscribe,
     #[at("/internal-server-error")]
@@ -19,6 +21,7 @@ pub enum Route {
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
+        Route::Verify => html! { <Verify /> },
         Route::Unsubscribe => {
             html! { <Unsubscribe  /> }
         }
