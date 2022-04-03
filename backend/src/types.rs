@@ -8,8 +8,8 @@ pub struct SanitisedLikeString(String);
 
 impl SanitisedLikeString {
     fn new(string: String) -> Self {
-        let string = string.replace("%", "");
-        let string = string.replace("_", "");
+        let string = string.replace('%', "");
+        let string = string.replace('_', "");
         Self(string)
     }
 

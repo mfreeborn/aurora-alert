@@ -9,7 +9,6 @@ use crate::types::user::{UserRegisterInfo, UserSubscribeWrapper};
 #[function_component(Home)]
 pub fn home() -> Html {
     let register_info = use_state(UserRegisterInfo::default);
-    log::info!("{:?}", register_info.clone());
 
     let user_register = {
         let register_info = register_info.clone();
@@ -21,7 +20,7 @@ pub fn home() -> Html {
     };
 
     let onsubmit = {
-        let user_register = user_register.clone();
+        let user_register = user_register;
         Callback::from(move |e: FocusEvent| {
             e.prevent_default();
             user_register.run();
@@ -60,7 +59,7 @@ pub fn home() -> Html {
         Callback::from(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             let val = input.value();
-            location.set(val.clone());
+            location.set(val);
 
             get_locations.run();
         })
