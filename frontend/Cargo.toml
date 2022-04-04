@@ -10,13 +10,15 @@ categories = ["gui", "wasm", "web-programming"]
 
 [dependencies]
 log = "0.4"
+plotters = "0.3"
+plotters-canvas = "0.3"
 reqwest = { version = "0.11", features = [ "json" ] }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_urlencoded = "0.7.1"
 thiserror = "1.0"
 wasm-bindgen = "0.2"
 wasm-logger = "0.2"
-web-sys = { version = "0.3", features = [ "DomStringMap" ] }
+web-sys = { version = "0.3", features = [ "DomStringMap", "HtmlCanvasElement" ] }
 yew = "0.19"
 yew-hooks = "0.1.46"
 yew-router = "0.16"
