@@ -33,21 +33,42 @@ pub fn registration_form() -> Html {
     };
 
     let onsubmit = {
-        let user_register = user_register;
+        let user_register = user_register.clone();
         Callback::from(move |e: FocusEvent| {
             e.prevent_default();
             user_register.run();
         })
     };
 
-    let valid_form = registration_info.is_valid();
+    let valid_form = !user_register.loading && registration_info.is_valid();
     html! {
-        <Form {onsubmit}>
-            <EmailField handler={email_handler} />
-            <AlertThresholdField handler={alert_threshold_handler} />
-            <LocationsField handler={locations_handler} />
-            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary")}>{"Register"}</button>
-        </Form>
+        <>
+        {
+            if let Some(data) = &user_register.data {
+                html ! {
+                    <p>{"Thank you for registering. You should receive an email within the next couple of minutes to verify your account."}</p>
+                 }
+            } else {
+                html! {
+                    <>
+                        <Form {onsubmit}>
+                            <EmailField handler={email_handler} />
+                            <AlertThresholdField handler={alert_threshold_handler} />
+                            <LocationsField handler={locations_handler} />
+                            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary")}>{"Register"}</button>
+                        </Form>
+                        {
+                            if let Some(err) = &user_register.error {
+                                html! { err }
+                            } else {
+                                html! {}
+                            }
+                        }
+                    </>
+                }
+            }
+        }
+        </>
     }
 }
 
@@ -146,7 +167,7 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
     };
 
     let valid_location = if let Some(locations) = &datalist_locations.data {
-        locations.contains_key(&*location)
+        locations.contains_key(&*location) && chosen_locations.deref().len() <= 5
     } else {
         false
     };
@@ -221,7 +242,7 @@ fn chosen_locations(props: &ChosenLocationsProps) -> Html {
     }
 
     html! {
-        <ul class={classes!("list-group")} style="user-select: none;">
+        <ul class={classes!("list-group", "mb-3")} style="user-select: none;">
             {
                 props.locations.iter().map(|(name, _)| html! {
                     <ChosenLocation name={name.clone()} location_to_remove={location_to_remove.clone()} />

@@ -29,7 +29,7 @@ pub fn header() -> Html {
     let current_route: Route = use_route().unwrap_or_default();
 
     html! {
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-5">
             <div class="container-fluid">
                 <LinkHome classes="navbar-brand" text="Aurora Alert" />
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-nav-collapse">

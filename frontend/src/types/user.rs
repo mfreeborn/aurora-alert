@@ -20,7 +20,7 @@ pub struct UserRegisterInfo {
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct UserSubscribeWrapper {
-    payload: String,
+    pub payload: String,
 }
 
 #[derive(Debug, Serialize, Clone)]

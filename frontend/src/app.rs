@@ -7,13 +7,11 @@ use crate::routes;
 #[function_component(App)]
 pub fn app() -> Html {
     html! {
-        <div class="container">
-            <BrowserRouter>
-                <Header />
-                <div class={classes!("page-content")}>
-                    <routes::PageSwitch />
-                </div>
-            </BrowserRouter>
-        </div>
+        <BrowserRouter>
+            <Header />
+            <div class={classes!("container")}>
+                <routes::PageSwitch />
+            </div>
+        </BrowserRouter>
     }
 }
