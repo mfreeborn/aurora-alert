@@ -55,7 +55,7 @@ pub fn registration_form() -> Html {
                             <EmailField handler={email_handler} />
                             <AlertThresholdField handler={alert_threshold_handler} />
                             <LocationsField handler={locations_handler} />
-                            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary")}>{"Register"}</button>
+                            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary", "mb-3")}>{"Register"}</button>
                         </Form>
                         {
                             if let Some(_err) = &user_register.error {
