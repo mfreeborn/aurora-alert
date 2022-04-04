@@ -5,27 +5,13 @@ body {
 }
 
 body {
-  background: linear-gradient(to bottom right, #444444, #009a5b);
-  font-size: 1.5rem;
-}
-
-a {
-  text-decoration: none;
+  background: #d3d3d3;
 }
 
 .container {
   padding: 0px;
   margin: 0px;
   min-width: 100%;
-}
-
-.header {
-  background-color: midnightblue;
-  color: orange;
-  justify-content: space-between;
-  padding: 0rem 1rem;
-  width: 100%;
-  margin: 0px;
 }
 
 .page-content {

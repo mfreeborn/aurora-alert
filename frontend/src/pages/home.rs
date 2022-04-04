@@ -1,7 +1,5 @@
 use yew::prelude::*;
 
-use crate::components::forms::RegistrationForm;
-
 #[function_component(Home)]
 pub fn home() -> Html {
     log::info!("render home page");
@@ -9,7 +7,6 @@ pub fn home() -> Html {
     html! {
         <>
             <h1>{ "Home" }</h1>
-            <RegistrationForm />
         </>
     }
 }

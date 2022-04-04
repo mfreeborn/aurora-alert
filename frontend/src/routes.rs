@@ -1,12 +1,14 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::pages::{Home, InternalServerError, PageNotFound, Unsubscribe, Verify};
+use crate::pages::{Home, InternalServerError, PageNotFound, Register, Unsubscribe, Verify};
 
 #[derive(Clone, PartialEq, Routable)]
 pub enum Route {
     #[at("/")]
     Home,
+    #[at("/register")]
+    Register,
     #[at("/verify")]
     Verify,
     #[at("/unsubscribe")]
@@ -21,6 +23,7 @@ pub enum Route {
 fn switch(routes: &Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
+        Route::Register => html! { <Register /> },
         Route::Verify => html! { <Verify /> },
         Route::Unsubscribe => {
             html! { <Unsubscribe  /> }
@@ -54,11 +57,29 @@ pub fn redirect_internal_server_error() -> Html {
 #[derive(Properties, PartialEq)]
 pub struct LinkHomeProps {
     pub text: String,
+    #[prop_or_default]
+    pub classes: Classes,
 }
 
 #[function_component(LinkHome)]
 pub fn link_home(props: &LinkHomeProps) -> Html {
+    let LinkHomeProps { text, classes } = props;
     html! {
-        <Link<Route> to={Route::Home}>{props.text.clone()}</Link<Route>>
+        <Link<Route> to={Route::Home}  classes={classes.clone()}>{text}</Link<Route>>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkRegisterProps {
+    pub text: String,
+    #[prop_or_default]
+    pub classes: Classes,
+}
+
+#[function_component(LinkRegister)]
+pub fn link_register(props: &LinkRegisterProps) -> Html {
+    let LinkRegisterProps { text, classes } = props;
+    html! {
+        <Link<Route> to={Route::Register}  classes={classes.clone()}>{text}</Link<Route>>
     }
 }
