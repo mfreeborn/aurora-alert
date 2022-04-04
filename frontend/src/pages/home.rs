@@ -6,7 +6,6 @@ use yew::prelude::*;
 fn draw_chart(canvas: HtmlCanvasElement) {
     let backend = CanvasBackend::with_canvas_object(canvas).expect("cannot find canvas element");
     let root = backend.into_drawing_area();
-    let font: FontDesc = ("sans-serif", 20.0).into();
 
     root.fill(&WHITE).unwrap();
 
@@ -45,10 +44,7 @@ pub fn home() -> Html {
     {
         let canvas_ref = canvas_ref.clone();
         use_effect(move || {
-            //log::info!("in callback");
-            //log::info!("{canvas_ref:?}");
             let canvas: HtmlCanvasElement = canvas_ref.cast().unwrap();
-            //log::info!("{canvas:?}");
             draw_chart(canvas);
             || ()
         });
