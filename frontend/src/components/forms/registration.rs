@@ -44,7 +44,7 @@ pub fn registration_form() -> Html {
     html! {
         <>
         {
-            if let Some(data) = &user_register.data {
+            if let Some(_data) = &user_register.data {
                 html ! {
                     <p>{"Thank you for registering. You should receive an email within the next couple of minutes to verify your account."}</p>
                  }
@@ -58,8 +58,10 @@ pub fn registration_form() -> Html {
                             <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary")}>{"Register"}</button>
                         </Form>
                         {
-                            if let Some(err) = &user_register.error {
-                                html! { err }
+                            if let Some(_err) = &user_register.error {
+                                html! {
+                                    <p>{"There seems to have been an error - check that you have entered your details correctly and consider trying again later."}</p>
+                                 }
                             } else {
                                 html! {}
                             }
