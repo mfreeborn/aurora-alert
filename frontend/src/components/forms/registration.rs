@@ -5,17 +5,59 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_hooks::use_async;
 
+use super::Form;
 use crate::services::locations::get_locations;
 use crate::services::user::register;
 use crate::types::user::{UserRegisterPostBody, UserSubscribeWrapper};
 
+#[function_component(RegistrationForm)]
+pub fn registration_form() -> Html {
+    let email_handler = use_state(String::new);
+    let alert_threshold_handler = use_state(|| "yellow".to_string());
+    let locations_handler = use_state(HashMap::<String, i64>::new);
+
+    let registration_info = UserRegisterPostBody {
+        email: email_handler.deref().clone(),
+        alert_threshold: alert_threshold_handler.deref().clone(),
+        locations: locations_handler
+            .deref()
+            .clone()
+            .values()
+            .cloned()
+            .collect::<Vec<_>>(),
+    };
+
+    let user_register = {
+        let registration_info = registration_info.clone();
+        use_async(async move { register::<UserSubscribeWrapper>(registration_info).await })
+    };
+
+    let onsubmit = {
+        let user_register = user_register;
+        Callback::from(move |e: FocusEvent| {
+            e.prevent_default();
+            user_register.run();
+        })
+    };
+
+    let valid_form = registration_info.is_valid();
+    html! {
+        <Form {onsubmit}>
+            <EmailField handler={email_handler} />
+            <AlertThresholdField handler={alert_threshold_handler} />
+            <LocationsField handler={locations_handler} />
+            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary")}>{"Register"}</button>
+        </Form>
+    }
+}
+
 #[derive(Properties, PartialEq)]
-pub struct EmailFieldProps {
+struct EmailFieldProps {
     handler: UseStateHandle<String>,
 }
 
 #[function_component(EmailField)]
-pub fn email_field(props: &EmailFieldProps) -> Html {
+fn email_field(props: &EmailFieldProps) -> Html {
     let oninput = {
         let handler = props.handler.clone();
         Callback::from(move |e: InputEvent| {
@@ -32,12 +74,12 @@ pub fn email_field(props: &EmailFieldProps) -> Html {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct AlertThresholdFieldProps {
+struct AlertThresholdFieldProps {
     handler: UseStateHandle<String>,
 }
 
 #[function_component(AlertThresholdField)]
-pub fn alert_threshold_field(props: &AlertThresholdFieldProps) -> Html {
+fn alert_threshold_field(props: &AlertThresholdFieldProps) -> Html {
     let oninput = {
         let handler = props.handler.clone();
         Callback::from(move |e: InputEvent| {
@@ -58,12 +100,12 @@ pub fn alert_threshold_field(props: &AlertThresholdFieldProps) -> Html {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct LocationsFieldProps {
+struct LocationsFieldProps {
     handler: UseStateHandle<HashMap<String, i64>>,
 }
 
 #[function_component(LocationsField)]
-pub fn locations_field(props: &LocationsFieldProps) -> Html {
+fn locations_field(props: &LocationsFieldProps) -> Html {
     let chosen_locations = props.handler.clone();
 
     let location = use_state(String::new);
@@ -135,13 +177,13 @@ pub fn locations_field(props: &LocationsFieldProps) -> Html {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct ChosenLocationProps {
+struct ChosenLocationProps {
     name: String,
     location_to_remove: UseStateHandle<Option<String>>,
 }
 
 #[function_component(ChosenLocation)]
-pub fn chosen_location(props: &ChosenLocationProps) -> Html {
+fn chosen_location(props: &ChosenLocationProps) -> Html {
     let name = props.name.clone();
     let onclick = {
         let name = props.name.clone();
@@ -163,12 +205,12 @@ pub fn chosen_location(props: &ChosenLocationProps) -> Html {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct ChosenLocationsProps {
+struct ChosenLocationsProps {
     locations: UseStateHandle<HashMap<String, i64>>,
 }
 
 #[function_component(ChosenLocations)]
-pub fn chosen_locations(props: &ChosenLocationsProps) -> Html {
+fn chosen_locations(props: &ChosenLocationsProps) -> Html {
     let location_to_remove = use_state(|| None::<String>);
 
     if let Some(location) = location_to_remove.deref().clone() {
@@ -186,67 +228,5 @@ pub fn chosen_locations(props: &ChosenLocationsProps) -> Html {
                 }).collect::<Html>()
             }
         </ul>
-    }
-}
-
-trait FormField {}
-
-impl FormField for EmailField {}
-impl FormField for AlertThresholdField {}
-impl FormField for LocationsField {}
-
-#[derive(Properties, PartialEq)]
-pub struct FormProps {
-    children: Children,
-    onsubmit: Callback<FocusEvent>,
-}
-
-#[function_component(Form)]
-pub fn form(props: &FormProps) -> Html {
-    html! {
-        <form onsubmit={props.onsubmit.clone()} autocomplete="off" style="max-width: max-content;">
-        { for props.children.iter() }
-        </form>
-    }
-}
-
-#[function_component(RegistrationForm)]
-pub fn registration_form() -> Html {
-    let email_handler = use_state(String::new);
-    let alert_threshold_handler = use_state(|| "yellow".to_string());
-    let locations_handler = use_state(HashMap::<String, i64>::new);
-
-    let registration_info = UserRegisterPostBody {
-        email: email_handler.deref().clone(),
-        alert_threshold: alert_threshold_handler.deref().clone(),
-        locations: locations_handler
-            .deref()
-            .clone()
-            .values()
-            .cloned()
-            .collect::<Vec<_>>(),
-    };
-
-    let user_register = {
-        let registration_info = registration_info.clone();
-        use_async(async move { register::<UserSubscribeWrapper>(registration_info).await })
-    };
-
-    let onsubmit = {
-        let user_register = user_register;
-        Callback::from(move |e: FocusEvent| {
-            e.prevent_default();
-            user_register.run();
-        })
-    };
-
-    let valid_form = registration_info.is_valid();
-    html! {
-        <Form {onsubmit}>
-            <EmailField handler={email_handler} />
-            <AlertThresholdField handler={alert_threshold_handler} />
-            <LocationsField handler={locations_handler} />
-            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary")}>{"Register"}</button>
-        </Form>
     }
 }
