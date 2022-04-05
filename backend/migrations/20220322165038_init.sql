@@ -42,13 +42,15 @@ CREATE TABLE user_locations (
 );
 
 CREATE TABLE activity_data (
-    datetime TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE,
-    value REAL NOT NULL
+    datetime TEXT NOT NULL,
+    value REAL NOT NULL,
+    PRIMARY KEY (datetime) ON CONFLICT REPLACE
 );
 
 CREATE TABLE activity_data_meta (
-    activity_data_meta_id INTEGER PRIMARY KEY NOT NULL ON CONFLICT REPLACE,
-    updated_at TEXT NOT NULL
+    activity_data_meta_id INTEGER NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (activity_data_meta_id) ON CONFLICT REPLACE
 );
 
 -- insert seed data as desired
