@@ -12,6 +12,9 @@ pub enum ApiError {
 
     #[display(fmt = "Email Error")]
     Email { context: String },
+
+    #[display(fmt = "Api Error")]
+    Api { context: String },
 }
 
 impl ApiError {
@@ -19,7 +22,8 @@ impl ApiError {
         match self {
             ApiError::Database { context }
             | ApiError::Template { context }
-            | ApiError::Email { context } => Some(context.clone()),
+            | ApiError::Email { context }
+            | ApiError::Api { context } => Some(context.clone()),
         }
     }
 }
@@ -40,9 +44,10 @@ impl error::ResponseError for ApiError {
 
     fn status_code(&self) -> StatusCode {
         match *self {
-            ApiError::Database { .. } | ApiError::Template { .. } | ApiError::Email { .. } => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
+            ApiError::Database { .. }
+            | ApiError::Template { .. }
+            | ApiError::Email { .. }
+            | ApiError::Api { .. } => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

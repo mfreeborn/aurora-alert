@@ -126,6 +126,7 @@ async fn main() -> anyhow::Result<()> {
             .service(routes::register)
             .service(routes::unsubscribe)
             .service(routes::locations)
+            .service(routes::activity)
     })
     .bind(("0.0.0.0", 9090))?
     .run()

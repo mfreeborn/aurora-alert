@@ -294,6 +294,7 @@ dependencies = [
  "serde_repr",
  "sqlx",
  "tera",
+ "thiserror",
 ]
 
 [[package]]

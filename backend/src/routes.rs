@@ -134,3 +134,14 @@ async fn register(
 
     Ok(JsonResponse::new("User registered succesfully"))
 }
+
+#[get("/activity")]
+async fn activity() -> Result<impl Responder> {
+    let activity = crate::apis::aurora_watch::get_activity_data()
+        .await
+        .map_err(|e| errors::ApiError::Api {
+            context: format!("Error fetching activity data: {e}"),
+        })?;
+
+    Ok(actix_web::web::Json(activity))
+}
