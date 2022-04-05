@@ -41,10 +41,19 @@ CREATE TABLE user_locations (
     FOREIGN KEY (location_id) REFERENCES locations (location_id) ON DELETE CASCADE
 );
 
+CREATE TABLE activity_data (
+    datetime TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE,
+    value REAL NOT NULL
+);
+
+CREATE TABLE activity_data_meta (
+    activity_data_meta_id INTEGER PRIMARY KEY NOT NULL ON CONFLICT REPLACE,
+    updated_at TEXT NOT NULL
+);
 
 -- insert seed data as desired
 INSERT INTO users (email, alert_threshold, verified)
-VALUES ('my email', 'yellow', 1);
+VALUES ('my_email', 'yellow', 1);
 
 INSERT INTO alert_level (alert_level_id, alert_level, previous_alert_level, updated_at)
 VALUES (1, 'green', 'green', '2020-01-01 00:00:00');
