@@ -60,6 +60,7 @@ async fn maybe_alert(
     Ok(())
 }
 
+/// A task which runs every 5 minutes and conditionally sends out email notifications of alert level changes
 pub async fn alert_task(
     pool: &db::Pool,
     template_engine: &templates::Engine,
@@ -92,5 +93,29 @@ pub async fn clear_unverified_users_task(pool: &db::Pool) -> ! {
 
         let deleted_users_count = db::delete_unverified_users(pool).await.unwrap();
         log::info!("{} user(s) deleted from the database", deleted_users_count);
+    }
+}
+
+/// A task which periodically updates the locally cached aurora activity data
+pub async fn update_activity_data_task(pool: &db::Pool) -> ! {
+    log::info!("Started update_activity_data_task");
+    let mut interval = actix_rt::time::interval(std::time::Duration::from_secs(60 * 5));
+    loop {
+        interval.tick().await;
+        let activity = apis::aurora_watch::get_activity_data().await;
+
+        let activity = match activity {
+            Ok(act) => act,
+            Err(e) => {
+                log::warn!("Error fetching aurora activity levels: {e}");
+                continue;
+            }
+        };
+
+        let res = db::update_aurora_activity(activity, pool).await;
+
+        if let Err(e) = res {
+            log::warn!("Error updating activity data in database: {e}");
+        };
     }
 }

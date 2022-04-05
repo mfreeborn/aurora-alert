@@ -136,12 +136,12 @@ async fn register(
 }
 
 #[get("/activity")]
-async fn activity() -> Result<impl Responder> {
-    let activity = crate::apis::aurora_watch::get_activity_data()
+async fn activity(pool: db::Extractor) -> Result<impl Responder> {
+    let activity_data = db::get_latest_activity_data(pool.get_ref())
         .await
         .map_err(|e| errors::ApiError::Api {
-            context: format!("Error fetching activity data: {e}"),
+            context: format!("Error retrieving aurora activity data: {e}"),
         })?;
 
-    Ok(actix_web::web::Json(activity))
+    Ok(actix_web::web::Json(activity_data))
 }

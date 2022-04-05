@@ -50,34 +50,40 @@ pub struct ActivityDataPoint {
 
 #[derive(Debug, Serialize)]
 pub struct ActivityData {
-    pub station: String,
-    pub start_time: DT,
-    pub end_time: DT,
-    pub creation_time: DT,
+    pub updated_at: DT,
     pub activities: Vec<ActivityDataPoint>,
 }
 
 fn parse_single_value(mut lines: std::str::Lines) -> Result<(&str, std::str::Lines)> {
-    // e.g. "STATION AWN/LAN1" -> "AWN/LAN1"
-    // "0345 301 0574"
+    // viz. STATION AWN/LAN1 -> AWN/LAN1,
+    //      START_TIME 2022-04-04T14:00:00+00 -> 2022-04-04T14:00:00+00,
+    //      END_TIME 2022-04-05T14:00:00+00 -> 2022-04-05T14:00:00+00,
+    //      CREATION_TIME 2022-04-05T13:12:31+00 -> 2022-04-05T13:12:31+00
+
     let value = lines
         .next()
         .and_then(|line| line.split_once(' '))
-        .and_then(|(_label, value)| Some(value))
-        .ok_or(AuroraWatchError::Parse(
-            "Error parsing single value".to_string(),
-        ))?;
+        .map(|(_label, value)| value)
+        .ok_or_else(|| AuroraWatchError::Parse("Error parsing single value".to_string()))?;
     Ok((value, lines))
 }
 
 fn parse_activity(line: &str) -> Result<ActivityDataPoint> {
-    let mut split = line.splitn(4, ' ').skip(1);
-    let datetime = split.next().ok_or(AuroraWatchError::Parse(
-        "Error parsing activity datapoint: 'datetime' field not found".to_string(),
-    ))?;
-    let value = split.next().ok_or(AuroraWatchError::Parse(
-        "Error parsing activity datapoint: 'value' field not found".to_string(),
-    ))?;
+    // e.g. ACTIVITY 2022-04-04T14:00:00+00 24.0 green
+    // skip the ACTIVITY tag
+    let mut parts = line.splitn(4, ' ').skip(1);
+    let datetime = parts.next().ok_or_else(|| {
+        AuroraWatchError::Parse(
+            "Error parsing activity datapoint: 'datetime' field not found".to_string(),
+        )
+    })?;
+    let value = parts.next().ok_or_else(|| {
+        AuroraWatchError::Parse(
+            "Error parsing activity datapoint: 'value' field not found".to_string(),
+        )
+    })?;
+
+    // implicitly skip the 4th item in the activity line, which is the alert level
 
     Ok(ActivityDataPoint {
         datetime: chrono::Utc.datetime_from_str(datetime, "%FT%T%#z")?,
@@ -86,28 +92,25 @@ fn parse_activity(line: &str) -> Result<ActivityDataPoint> {
 }
 
 fn parse_activities(lines: std::iter::Skip<std::str::Lines>) -> Result<Vec<ActivityDataPoint>> {
-    let activities = lines.map(|line| parse_activity(line)).collect();
-    activities
+    lines.map(parse_activity).collect()
 }
 
 impl ActivityData {
     pub fn from_text(text: &str) -> Result<Self> {
         // example text: https://aurorawatch.lancs.ac.uk/api/0.1/activity.txt
         let lines = text.lines();
-        let (station, rest) = parse_single_value(lines)?;
-        let (start_time, rest) = parse_single_value(rest)?;
-        let (end_time, rest) = parse_single_value(rest)?;
-        let (creation_time, rest) = parse_single_value(rest)?;
+        let (_station, rest) = parse_single_value(lines)?;
+        let (_start_time, rest) = parse_single_value(rest)?;
+        let (_end_time, rest) = parse_single_value(rest)?;
+        let (updated_at, rest) = parse_single_value(rest)?;
 
+        // skip the 4 THRESHOLD definitions
         let rest = rest.skip(4);
 
         let activities = parse_activities(rest)?;
 
         Ok(Self {
-            station: station.to_string(),
-            start_time: chrono::Utc.datetime_from_str(start_time, "%FT%T%#z")?,
-            end_time: chrono::Utc.datetime_from_str(end_time, "%FT%T%#z")?,
-            creation_time: chrono::Utc.datetime_from_str(creation_time, "%FT%T%#z")?,
+            updated_at: chrono::Utc.datetime_from_str(updated_at, "%FT%T%#z")?,
             activities,
         })
     }

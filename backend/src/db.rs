@@ -380,17 +380,147 @@ pub async fn get_verified_users(pool: &Pool) -> anyhow::Result<Vec<UserWithLocat
     Ok(users)
 }
 
-pub async fn delete_unverified_users(pool: &Pool) -> anyhow::Result<usize> {
+pub async fn delete_unverified_users(pool: &Pool) -> anyhow::Result<u64> {
     let deleted_users_count = sqlx::query!(
         r#"
             DELETE FROM users
             WHERE NOT verified
-            RETURNING changes() as "changes: i64"
         "#,
     )
-    .fetch_all(pool)
+    .execute(pool)
     .await?
-    .len();
+    .rows_affected();
 
     Ok(deleted_users_count)
+}
+
+pub async fn update_aurora_activity(
+    activity: crate::apis::aurora_watch::ActivityData,
+    pool: &Pool,
+) -> anyhow::Result<()> {
+    let mut tx = pool.begin().await?;
+    let acts = activity.activities;
+    sqlx::query!(
+        "
+        INSERT INTO 
+          activity_data (datetime, value)
+        VALUES
+          (?, ?), (?, ?),  -- 2
+          (?, ?), (?, ?),  -- 4
+          (?, ?), (?, ?),  -- 6
+          (?, ?), (?, ?),  -- 8
+          (?, ?), (?, ?),  -- 10
+          (?, ?), (?, ?),  -- 12
+          (?, ?), (?, ?),  -- 14
+          (?, ?), (?, ?),  -- 16
+          (?, ?), (?, ?),  -- 18
+          (?, ?), (?, ?),  -- 20
+          (?, ?), (?, ?),  -- 22
+          (?, ?), (?, ?)   -- 24
+        ",
+        acts[0].datetime,
+        acts[0].value,
+        acts[1].datetime,
+        acts[1].value,
+        acts[2].datetime,
+        acts[2].value,
+        acts[3].datetime,
+        acts[3].value,
+        acts[4].datetime,
+        acts[4].value,
+        acts[5].datetime,
+        acts[5].value,
+        acts[6].datetime,
+        acts[6].value,
+        acts[7].datetime,
+        acts[7].value,
+        acts[8].datetime,
+        acts[8].value,
+        acts[9].datetime,
+        acts[9].value,
+        acts[10].datetime,
+        acts[10].value,
+        acts[11].datetime,
+        acts[11].value,
+        acts[12].datetime,
+        acts[12].value,
+        acts[13].datetime,
+        acts[13].value,
+        acts[14].datetime,
+        acts[14].value,
+        acts[15].datetime,
+        acts[15].value,
+        acts[16].datetime,
+        acts[16].value,
+        acts[17].datetime,
+        acts[17].value,
+        acts[18].datetime,
+        acts[18].value,
+        acts[19].datetime,
+        acts[19].value,
+        acts[20].datetime,
+        acts[20].value,
+        acts[21].datetime,
+        acts[21].value,
+        acts[22].datetime,
+        acts[22].value,
+        acts[23].datetime,
+        acts[23].value,
+    )
+    .execute(&mut tx)
+    .await?;
+
+    sqlx::query!(
+        "
+            INSERT INTO 
+              activity_data_meta (activity_data_meta_id, updated_at)
+            VALUES (1, ?)
+        ",
+        activity.updated_at
+    )
+    .execute(&mut tx)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
+pub async fn get_latest_activity_data(
+    pool: &Pool,
+) -> anyhow::Result<crate::apis::aurora_watch::ActivityData> {
+    let mut tx = pool.begin().await?;
+    let updated_at = sqlx::query_scalar!(
+        r#"
+            SELECT updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+            FROM activity_data_meta
+            WHERE activity_data_meta_id = 1
+        "#
+    )
+    .fetch_one(&mut tx)
+    .await?;
+
+    let activities = sqlx::query_as!(
+        crate::apis::aurora_watch::ActivityDataPoint,
+        r#"
+            SELECT 
+              datetime as "datetime: chrono::DateTime<chrono::Utc>",
+              value as "value: f64"
+            FROM 
+              activity_data
+            ORDER BY
+              datetime DESC
+            LIMIT
+              24
+        "#
+    )
+    .fetch_all(&mut tx)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(crate::apis::aurora_watch::ActivityData {
+        updated_at,
+        activities,
+    })
 }

@@ -74,6 +74,9 @@ async fn main() -> anyhow::Result<()> {
     // start the never-ending db maintenance task which deletes all unverified users every midnight
     actix_rt::spawn(tasks::clear_unverified_users_task(pool));
 
+    // start the never-ending activity data update task
+    actix_rt::spawn(tasks::update_activity_data_task(pool));
+
     HttpServer::new(move || {
         App::new()
             // middlewares
