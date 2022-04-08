@@ -6,3 +6,11 @@ members = [
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3
+
+[profile.release.package.aurora-alert-frontend]
+codegen-units = 1
+opt-level = "z"
+
+[profile.release]
+panic = "abort"
+lto = true
