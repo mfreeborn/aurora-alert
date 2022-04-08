@@ -29,7 +29,7 @@ pub fn header() -> Html {
     let current_route: Route = use_route().unwrap_or_default();
 
     html! {
-        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-5">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-5">
             <div class="container-fluid">
                 <LinkHome classes="navbar-brand" text="Aurora Alert" />
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-nav-collapse">
@@ -37,8 +37,8 @@ pub fn header() -> Html {
                 </button>
                 <div class="collapse navbar-collapse" id="navbar-nav-collapse">
                     <div class="navbar-nav">
-                        <NavLink to={Route::Register} text={"Register".to_string()} current_route={current_route.clone()} />
-                        <NavLink to={Route::About} text={"About".to_string()} current_route={current_route.clone()} />
+                        <NavLink to={Route::Register} text={"Register"} current_route={current_route.clone()} />
+                        <NavLink to={Route::About} text={"About"} current_route={current_route.clone()} />
                     </div>
                 </div>
             </div>
