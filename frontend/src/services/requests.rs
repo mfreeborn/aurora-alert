@@ -10,7 +10,7 @@ where
     B: Serialize + std::fmt::Debug,
 {
     let allow_body = method == reqwest::Method::POST || method == reqwest::Method::PUT;
-    let url = format!("http://0.0.0.0:9090{url}");
+    let url = format!("http://192.168.1.1:9090{url}");
     let mut builder = reqwest::Client::new()
         .request(method, url)
         .header("Content-Type", "application/json");

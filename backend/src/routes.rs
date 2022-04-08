@@ -135,9 +135,18 @@ async fn register(
     Ok(JsonResponse::new("User registered succesfully"))
 }
 
+#[derive(Deserialize)]
+struct ActivityRouteParams {
+    end: Option<chrono::DateTime<chrono::Utc>>,
+}
+
 #[get("/activity")]
-async fn activity(pool: db::Extractor) -> Result<impl Responder> {
-    let activity_data = db::get_latest_activity_data(pool.get_ref())
+async fn activity(
+    params: web::Query<ActivityRouteParams>,
+    pool: db::Extractor,
+) -> Result<impl Responder> {
+    let end = params.end.unwrap_or_else(|| chrono::Utc::now());
+    let activity_data = db::get_activity_data(end, pool.get_ref())
         .await
         .map_err(|e| errors::ApiError::Api {
             context: format!("Error retrieving aurora activity data: {e}"),

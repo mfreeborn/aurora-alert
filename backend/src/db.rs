@@ -486,7 +486,8 @@ pub async fn update_aurora_activity(
     Ok(())
 }
 
-pub async fn get_latest_activity_data(
+pub async fn get_activity_data(
+    end: chrono::DateTime<chrono::Utc>,
     pool: &Pool,
 ) -> anyhow::Result<crate::apis::aurora_watch::ActivityData> {
     let mut tx = pool.begin().await?;
@@ -508,11 +509,14 @@ pub async fn get_latest_activity_data(
               value as "value: f64"
             FROM 
               activity_data
+            WHERE
+              datetime <= ?
             ORDER BY
               datetime DESC
             LIMIT
               24
-        "#
+        "#,
+        end
     )
     .fetch_all(&mut tx)
     .await?;
