@@ -153,7 +153,7 @@ enum ChartSize {
 impl ChartSize {
     fn get_spec(&self) -> ChartSpec {
         match *self {
-            Self::Sm => ChartSpec::new(360, 500, 10, 120, 90),
+            Self::Sm => ChartSpec::new(369, 500, 12, 140, 90),
             Self::Lg => ChartSpec::new(1296, 500, 10, 60, 50),
         }
     }
@@ -283,7 +283,7 @@ fn draw_x_labels(
         draw_first_date,
     );
 
-    if spec.display_width == 360 {
+    if spec.display_width == 369 {
         // Pixel 5
         for i in (3_usize..24).step_by(3).chain([23]) {
             let x_offset = spec.x_bar_offset(i);
