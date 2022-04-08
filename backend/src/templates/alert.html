@@ -13,7 +13,8 @@
 {% endblock content %}
 {% block footer %}
 <span>
-    Stop receiving these emails? <a href="{{ 'http://0.0.0.0:8080/unsubscribe?user_id=' ~ user_id ~ '&email=' ~ email}}"">Unsubscribe</a>
+    Stop receiving these emails? <a
+        href="{{ 'http://192.168.1.1:8080/unsubscribe?user_id=' ~ user_id ~ '&email=' ~ email}}"">Unsubscribe</a>
 </span>
 
 {% endblock footer %}
