@@ -119,9 +119,9 @@ fn email_field(props: &EmailFieldProps) -> Html {
         })
     };
     html! {
-        <div class={classes!("mb-3")}>
-            <label for="user-email" class={classes!("form-label")}>{"Email address"}</label>
-            <input {oninput} id="user-email" type="email" class={classes!("form-control")} />
+        <div class={classes!("form-floating", "mb-3")}>
+            <input {oninput} placeholder="Email address" id="user-email" type="email" class={classes!("form-control")} />
+            <label for="user-email" class={classes!("form-label")} style="color: #5c5c5c;">{"Email address"}</label>
         </div>
     }
 }
@@ -141,13 +141,13 @@ fn alert_threshold_field(props: &AlertThresholdFieldProps) -> Html {
         })
     };
     html! {
-        <div class={classes!("mb-3")}>
-            <label for="user-alert-threshold" class={classes!("form-label")}>{"Alert threshold"}</label>
-            <select {oninput} id="user-alert-threshold" class={classes!("form-select")}>
-                <option value="yellow" selected=true>{"Yellow"}</option>
-                <option value="amber">{"Amber"}</option>
-                <option value="red">{"Red"}</option>
-            </select>
+        <div class={classes!("form-floating", "mb-3")}>
+        <select {oninput} id="user-alert-threshold" class={classes!("form-select")}>
+            <option value="yellow" selected=true>{"Yellow"}</option>
+            <option value="amber">{"Amber"}</option>
+            <option value="red">{"Red"}</option>
+        </select>
+        <label for="user-alert-threshold" class={classes!("form-label")}>{"Alert threshold"}</label>
         </div>
     }
 }
@@ -215,13 +215,15 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
 
     html! {
         <>
-            <label for="location-list" class="form-label">{"Locations"}</label>
-            <div class={classes!("mb-3", "input-group")}>
+            <div class={classes!("input-group", "mb-3")}>
                 // we could easily add a country filter later on if we want to
                 // <select class="form-select">
                 //     <option value="GB" selected={true} style="max-width: max-content;">{"GB"}</option>
                 // </select>
-                <input oninput={oninput_location} ref={locations_input_ref} id="location-list" class="form-control" list="location-list-options" Placeholder="Search for a location..." />
+                <div class="form-floating flex-grow-1">
+                    <input oninput={oninput_location} ref={locations_input_ref} id="location-list" class="form-control" list="location-list-options" Placeholder="Search for a location..." />
+                    <label for="location-list" class="form-label" style="color: #5c5c5c;">{"Search for a location..."}</label>
+                </div>
                 <button {onclick} class="btn btn-primary" style="border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem;" type="button" disabled={!valid_location}>{"Select"}</button>
                 <datalist id="location-list-options">
                     {
