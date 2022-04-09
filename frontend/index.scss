@@ -4,11 +4,20 @@ body {
   margin: 0;
 }
 
-body {
-  background: rgb(248, 249, 250);
+.btn:focus,
+.btn:focus-visible {
+  box-shadow: none;
 }
 
-.container {
+.theme-toggle-light:hover {
+  background-color: #92bdfe;
+}
+
+.theme-toggle-dark:hover {
+  background-color: #9c9d9d;
+}
+
+#page-content {
   padding-bottom: 48px;
 }
 

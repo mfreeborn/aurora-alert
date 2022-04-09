@@ -244,7 +244,7 @@ fn chosen_locations(props: &ChosenLocationsProps) -> Html {
     }
 
     html! {
-        <ul class={classes!("list-group", "mb-3")} style="user-select: none;">
+        <ul class={classes!("list-group", "mb-3", "user-select-none")}>
             {
                 props.locations.iter().map(|(name, _)| html! {
                     <ChosenLocation name={name.clone()} location_to_remove={location_to_remove.clone()} />
