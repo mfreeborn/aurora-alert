@@ -35,7 +35,7 @@ pub fn header(props: &HeaderProps) -> Html {
             <div class="container-fluid align-items-center">
                 <LinkHome classes="navbar-brand" text="Aurora Alert" />
                 <div class="d-flex order-lg-last col justify-content-end">
-                    <button onclick={onclick_toggle_theme} class={classes!("btn", "btn-outline", "d-flex", "align-items-center", "me-2", "p-1", "rounded-circle", "border-0", "shadow-none", theme.components.header.theme_toggle_hover_background_colour)}>
+                    <button onclick={onclick_toggle_theme} data-bs-toggle="tooltip" data-bs-placement="bottom" title="Toggle between light and dark theme" class={classes!("btn", "btn-outline", "d-flex", "align-items-center", "me-2", "p-1", "rounded-circle", "border-0", "shadow-none", theme.components.header.theme_toggle_hover_background_colour)}>
                     {
                         match *selected_theme_handle.clone() {
                             crate::app::ThemeMode::Light => html ! {

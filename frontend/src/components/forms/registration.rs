@@ -6,6 +6,7 @@ use yew::prelude::*;
 use yew_hooks::use_async;
 
 use super::Form;
+use crate::routes::LinkHome;
 use crate::services::locations::get_locations;
 use crate::services::user::register;
 use crate::types::user::{UserRegisterPostBody, UserSubscribeWrapper};
@@ -43,33 +44,62 @@ pub fn registration_form() -> Html {
     let valid_form = !user_register.loading && registration_info.is_valid();
     html! {
         <>
-        {
-            if let Some(_data) = &user_register.data {
-                html ! {
-                    <p>{"Thank you for registering. You should receive an email within the next couple of minutes to verify your account."}</p>
-                 }
-            } else {
-                html! {
-                    <>
-                        <Form {onsubmit}>
-                            <EmailField handler={email_handler} />
-                            <AlertThresholdField handler={alert_threshold_handler} />
-                            <LocationsField handler={locations_handler} />
-                            <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary", "mb-3")}>{"Register"}</button>
-                        </Form>
-                        {
-                            if let Some(_err) = &user_register.error {
-                                html! {
-                                    <p>{"There seems to have been an error - check that you have entered your details correctly and consider trying again later."}</p>
-                                 }
-                            } else {
-                                html! {}
+            {
+                if let Some(_data) = &user_register.data {
+                    html ! {
+                        <div class="row">
+                            <div class="col">
+                                <div class="alert alert-success d-flex align-items-center" role="alert">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle-fill flex-shrink-0 me-3" viewBox="0 0 16 16" role="img" aria-label="Success:">
+                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                    </svg>
+                                    <div>
+                                        <p class="mb-2" style="font-weight: 500;">{"Thanks for registering!"}</p>
+                                        <p class="mb-0">{"Check your emails to verify your account so that you can start to receive aurora alerts. Head back to the "}
+                                        <LinkHome text="homepage" />
+                                        {" to see the latest aurora activity."}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                } else {
+                    html! {
+                        <>
+                            {
+                                if let Some(_err) = &user_register.error {
+                                    html! {
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                                                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                                    </svg>
+                                                    <div>
+                                                        {"There seems to have been an error - check that you have entered your details correctly and consider trying again later."}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                } else {
+                                    html! {}
+                                }
                             }
-                        }
-                    </>
+                            <div class="row justify-content-center">
+                                <div class="col-lg-auto">
+                                    <Form {onsubmit}>
+                                        <EmailField handler={email_handler} />
+                                        <AlertThresholdField handler={alert_threshold_handler} />
+                                        <LocationsField handler={locations_handler} />
+                                        <button disabled={!valid_form} type="submit" class={classes!("btn", "btn-primary", "mb-3")}>{"Register"}</button>
+                                    </Form>
+                                </div>
+                            </div>
+                        </>
+                    }
                 }
             }
-        }
         </>
     }
 }
