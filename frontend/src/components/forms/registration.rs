@@ -150,11 +150,15 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
         })
     };
 
+    let locations_input_ref = use_node_ref();
+
     let onclick = {
         let chosen_locations = chosen_locations.clone();
         let datalist_locations = datalist_locations.clone();
         let location = location.clone();
+        let locations_input_ref = locations_input_ref.clone();
         Callback::from(move |_: MouseEvent| {
+            // add the location to the list below the input box
             let (name, location_id) = datalist_locations
                 .data
                 .as_ref()
@@ -165,6 +169,11 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
             let mut new_chosen_locations = chosen_locations.deref().clone();
             new_chosen_locations.insert(name.to_string(), *location_id);
             chosen_locations.set(new_chosen_locations);
+
+            // clear the input box
+            // safe to unwrap because we know that we have insert the ref into the DOM below
+            let input = locations_input_ref.cast::<HtmlInputElement>().unwrap();
+            input.set_value("");
         })
     };
 
@@ -182,7 +191,7 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
                 // <select class="form-select">
                 //     <option value="GB" selected={true} style="max-width: max-content;">{"GB"}</option>
                 // </select>
-                <input oninput={oninput_location} id="location-list" class="form-control" list="location-list-options" Placeholder="Search for a location..." />
+                <input oninput={oninput_location} ref={locations_input_ref} id="location-list" class="form-control" list="location-list-options" Placeholder="Search for a location..." />
                 <button {onclick} class="btn btn-primary" style="border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem;" type="button" disabled={!valid_location}>{"Select"}</button>
                 <datalist id="location-list-options">
                     {
