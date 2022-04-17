@@ -5,7 +5,7 @@ mod hooks;
 mod pages;
 mod routes;
 mod services;
-mod themes;
+mod theme;
 mod types;
 
 use app::App;

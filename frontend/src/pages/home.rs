@@ -2,12 +2,10 @@ use yew::prelude::*;
 
 use crate::components::chart::ActivityChart;
 use crate::routes::LinkRegister;
-use crate::themes::Theme;
 
 #[function_component(Home)]
 pub fn home() -> Html {
     log::debug!("render home page");
-    let theme = use_context::<Theme>().expect("Theme context not found.");
 
     html! {
         <>
@@ -30,7 +28,7 @@ pub fn home() -> Html {
             <div class="row justify-content-center">
                 <div class="col-10">
                     <p>{"An explanation of the different colours can be found below, and is directly sourced from the AuroraWatch UK group:"}</p>
-                    <table class={classes!("table", "table-striped", theme.global.table_class)}>
+                    <table class={classes!("table", "table-striped")}>
                         <thead>
                             <tr>
                                 <th>{"Colour"}</th>

@@ -1,33 +1,185 @@
+:root,
+[data-theme=light] {
+  --bs-font-sans-serif: Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --bs-navbar-bg: var(--bs-primary);
+  --bs-navbar-active-color: #fff;
+  --bs-navbar-brand-color: #fff;
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-brand-hover-color: #fff;
+  --bs-navbar-color: rgba(255, 255, 255, 0.60);
+  --bs-navbar-disabled-color: rgba(255, 255, 255, 0.38);
+  --bs-navbar-toggler-border-color: rgba(255, 255, 255, 1);
+  --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  --bs-theme-toggler-icon-bg: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23fff%22%20width%3D%2228%22%20height%3D%2228%22%20class%3D%22bi%20bi-brightness-high%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2011a3%203%200%201%201%200-6%203%203%200%200%201%200%206zm0%201a4%204%200%201%200%200-8%204%204%200%200%200%200%208zM8%200a.5.5%200%200%201%20.5.5v2a.5.5%200%200%201-1%200v-2A.5.5%200%200%201%208%200zm0%2013a.5.5%200%200%201%20.5.5v2a.5.5%200%200%201-1%200v-2A.5.5%200%200%201%208%2013zm8-5a.5.5%200%200%201-.5.5h-2a.5.5%200%200%201%200-1h2a.5.5%200%200%201%20.5.5zM3%208a.5.5%200%200%201-.5.5h-2a.5.5%200%200%201%200-1h2A.5.5%200%200%201%203%208zm10.657-5.657a.5.5%200%200%201%200%20.707l-1.414%201.415a.5.5%200%201%201-.707-.708l1.414-1.414a.5.5%200%200%201%20.707%200zm-9.193%209.193a.5.5%200%200%201%200%20.707L3.05%2013.657a.5.5%200%200%201-.707-.707l1.414-1.414a.5.5%200%200%201%20.707%200zm9.193%202.121a.5.5%200%200%201-.707%200l-1.414-1.414a.5.5%200%200%201%20.707-.707l1.414%201.414a.5.5%200%200%201%200%20.707zM4.464%204.465a.5.5%200%200%201-.707%200L2.343%203.05a.5.5%200%201%201%20.707-.707l1.414%201.414a.5.5%200%200%201%200%20.708z%22%2F%3E%3C%2Fsvg%3E");
+  --bs-theme-toggler-hover: rgba(255, 255, 255, 0.25);
+  --bs-color-invert: #000;
+
+  // support dual-themed list groups
+  --bs-list-group-color: #212529;
+  --bs-list-group-bg: #fff;
+
+  // disable the focus ring around buttons
+  --bs-btn-focus-box-shadow: none;
+
+  // .btn-primary
+  --bs-btn-primary-color: #fff;
+  --bs-btn-primary-bg: var(--bs-primary);
+  --bs-btn-primary-border-color: var(--bs-primary);
+  --bs-btn-primary-hover-color: #fff;
+  --bs-btn-primary-hover-bg: #0b5ed7; // one shade darker than base
+  --bs-btn-primary-hover-border-color: #0a58ca; // 2 shades darker than base
+  --bs-btn-primary-active-color: #fff;
+  --bs-btn-primary-active-bg: #0a58ca; // 2 shades darker than base
+  --bs-btn-primary-active-border-color: #0a53be; // 2.5 shades darker than base
+  --bs-btn-primary-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-primary-disabled-color: #fff;
+  --bs-btn-primary-disabled-bg: var(--bs-primary);
+  --bs-btn-primary-disabled-border-color: var(--bs-primary);
+}
+
+[data-theme=dark] {
+  --bs-primary: #58b62a;
+  --bs-body-bg: #121212;
+  --bs-body-color: rgba(255, 255, 255, 0.87);
+  --bs-navbar-bg: #1f1f1f;
+  --bs-theme-toggler-icon-bg: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23fff%22%20width%3D%2228%22%20height%3D%2228%22%20class%3D%22bi%20bi-moon%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6%20.278a.768.768%200%200%201%20.08.858%207.208%207.208%200%200%200-.878%203.46c0%204.021%203.278%207.277%207.318%207.277.527%200%201.04-.055%201.533-.16a.787.787%200%200%201%20.81.316.733.733%200%200%201-.031.893A8.349%208.349%200%200%201%208.344%2016C3.734%2016%200%2012.286%200%207.71%200%204.266%202.114%201.312%205.124.06A.752.752%200%200%201%206%20.278zM4.858%201.311A7.269%207.269%200%200%200%201.025%207.71c0%204.02%203.279%207.276%207.319%207.276a7.316%207.316%200%200%200%205.205-2.162c-.337.042-.68.063-1.029.063-4.61%200-8.343-3.714-8.343-8.29%200-1.167.242-2.278.681-3.286z%22%2F%3E%3C%2Fsvg%3E");
+  --bs-form-control-bg: #323232;
+  --bs-color-invert: #fff;
+
+  // list groups
+  --bs-list-group-color: #fff;
+  --bs-list-group-bg: var(--bs-form-control-bg);
+
+  // .btn-primary
+  --bs-btn-primary-color: #fff;
+  --bs-btn-primary-bg: var(--bs-primary);
+  --bs-btn-primary-border-color: var(--bs-primary);
+  --bs-btn-primary-hover-color: #fff;
+  --bs-btn-primary-hover-bg: #63cd2f;
+  --bs-btn-primary-hover-border-color: #58b62a;
+  --bs-btn-primary-active-color: #fff;
+  --bs-btn-primary-active-bg: #58b62a;
+  --bs-btn-primary-active-border-color: #4d9f25;
+  --bs-btn-primary-active-shadow: inset 0 3px 5px rgb(196, 131, 131);
+  --bs-btn-primary-disabled-color: #fff;
+  --bs-btn-primary-disabled-bg: var(--bs-primary);
+  --bs-btn-primary-disabled-border-color: var(--bs-primary);
+}
+
 html,
 body {
   height: 100%;
-  margin: 0;
 }
 
-.btn:focus,
-.btn:focus-visible {
+.list-group {
+  --bs-list-group-color: inherit;
+  --bs-list-group-bg: inherit;
+}
+
+// disable the focus ring around inputs
+.form-control:focus,
+.form-select:focus {
   box-shadow: none;
 }
 
-.theme-toggle-light:hover {
-  background-color: #92bdfe;
+// disable the focus ring around buttons
+.btn {
+  --bs-btn-focus-box-shadow: inherit;
 }
 
-.theme-toggle-dark:hover {
-  background-color: #9c9d9d;
+.btn-primary {
+  --bs-btn-color: var(--bs-btn-primary-color);
+  --bs-btn-bg: var(--bs-btn-primary-bg);
+  --bs-btn-border-color: var(--bs-btn-primary-border-color);
+  --bs-btn-hover-color: var(--bs-btn-primary-hover-color);
+  --bs-btn-hover-bg: var(--bs-btn-primary-hover-bg);
+  --bs-btn-hover-border-color: var(--bs-btn-primary-hover-border-color);
+  --bs-btn-active-color: var(--bs-btn-primary-active-color);
+  --bs-btn-active-bg: var(--bs-btn-primary-active-bg);
+  --bs-btn-active-border-color: var(--bs-btn-primary-active-border-color);
+  --bs-btn-active-shadow: var(--bs-btn-primary-active-shadow);
+  --bs-btn-disabled-color: var(--bs-btn-primary-disabled-color);
+  --bs-btn-disabled-bg: var(--bs-btn-primary-disabled-bg);
+  --bs-btn-disabled-border-color: var(--bs-btn-primary-disabled-border-color);
 }
+
+
+[data-theme=dark] .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffffa6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+// emulate the standard bootstrap body element
+#content {
+  margin: 0;
+  font-family: var(--bs-body-font-family);
+  font-size: var(--bs-body-font-size);
+  font-weight: var(--bs-body-font-weight);
+  line-height: var(--bs-body-line-height);
+  color: var(--bs-body-color);
+  text-align: var(--bs-body-text-align);
+  background-color: var(--bs-body-bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  height: 100%;
+}
+
+.navbar {
+  // reset these to honour the values set above
+  --bs-navbar-color: inherit;
+  --bs-navbar-hover-color: inherit;
+  --bs-navbar-disabled-color: inherit;
+  --bs-navbar-active-color: inherit;
+  --bs-navbar-brand-color: inherit;
+  --bs-navbar-brand-hover-color: inherit;
+  --bs-navbar-toggler-icon-bg: inherit;
+  --bs-navbar-toggler-border-color: inherit;
+
+  // override these settings
+  --bs-navbar-toggler-font-size: 1rem;
+  --bs-navbar-toggler-focus-width: 0rem;
+  --bs-navbar-toggler-padding-x: 0.25rem;
+
+  color: var(--bs-navbar-color);
+  background-color: var(--bs-navbar-bg);
+}
+
+.theme-toggler {
+  // same size as the navbar toggler button
+  width: 34px;
+  height: 34px;
+}
+
+.theme-toggler-img {
+  background-image: var(--bs-theme-toggler-icon-bg);
+  background-repeat: round;
+  width: inherit;
+  height: inherit;
+}
+
+.theme-toggler:hover {
+  background-color: var(--bs-theme-toggler-hover);
+}
+
 
 #page-content {
   padding-bottom: 48px;
 }
 
+// the best of a bad bunch of ways to remove autocomplete styling
+input:-webkit-autofill {
+  -webkit-transition-delay: 9999s;
+  -webkit-transition: color 9999s cubic-bezier(1, 0, 1, 0), background-color 9999s cubic-bezier(1, 0, 1, 0);
+  transition-delay: 9999s;
+  transition: color 9999s cubic-bezier(1, 0, 1, 0), background-color 9999s cubic-bezier(1, 0, 1, 0);
+}
+
 .icon-button:hover {
-  cursor: pointer;
-  fill: red;
+  fill: var(--bs-danger);
 }
 
 .icon-button {
-  fill: rgb(116, 72, 72);
+  fill: var(--bs-color-invert);
+  opacity: 0.6;
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;

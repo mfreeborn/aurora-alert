@@ -5,7 +5,7 @@
     "{{ alert_threshold }}"* or above.</p>
 <p>You've also chosen the following locations to get a real-time weather report at the time of an aurora alert:</p>
 <ul>
-    {% for location in locations %}
+    {% for location in locations | sort(attribute="name") %}
     <li>
         {{ location.name }}
     </li>

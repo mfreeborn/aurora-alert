@@ -22,7 +22,6 @@ pub fn registration_form() -> Html {
         alert_threshold: alert_threshold_handler.deref().clone(),
         locations: locations_handler
             .deref()
-            .clone()
             .values()
             .cloned()
             .collect::<Vec<_>>(),
@@ -42,6 +41,7 @@ pub fn registration_form() -> Html {
     };
 
     let valid_form = !user_register.loading && registration_info.is_valid();
+
     html! {
         <>
             {
@@ -118,10 +118,11 @@ fn email_field(props: &EmailFieldProps) -> Html {
             handler.set(el.value());
         })
     };
+
     html! {
         <div class={classes!("form-floating", "mb-3")}>
             <input {oninput} placeholder="Email address" id="user-email" type="email" class={classes!("form-control")} />
-            <label for="user-email" class={classes!("form-label")} style="color: #5c5c5c;">{"Email address"}</label>
+            <label for="user-email" class={classes!("form-label")}>{"Email address"}</label>
         </div>
     }
 }
@@ -140,6 +141,7 @@ fn alert_threshold_field(props: &AlertThresholdFieldProps) -> Html {
             handler.set(el.value());
         })
     };
+
     html! {
         <div class={classes!("form-floating", "mb-3")}>
         <select {oninput} id="user-alert-threshold" class={classes!("form-select")}>
@@ -161,7 +163,7 @@ struct LocationsFieldProps {
 fn locations_field(props: &LocationsFieldProps) -> Html {
     let chosen_locations = props.handler.clone();
 
-    let location = use_state(String::new);
+    let location = use_state_eq(String::new);
 
     let datalist_locations = {
         let location = location.clone();
@@ -200,10 +202,12 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
             new_chosen_locations.insert(name.to_string(), *location_id);
             chosen_locations.set(new_chosen_locations);
 
-            // clear the input box
+            // clear the input box, re-disable the Select button and clear the datalist
             // safe to unwrap because we know that we have insert the ref into the DOM below
             let input = locations_input_ref.cast::<HtmlInputElement>().unwrap();
             input.set_value("");
+            location.set("".to_string());
+            datalist_locations.run();
         })
     };
 
@@ -215,16 +219,16 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
 
     html! {
         <>
-            <div class={classes!("input-group", "mb-3")}>
+            <div class={classes!("input-group")}>
                 // we could easily add a country filter later on if we want to
                 // <select class="form-select">
                 //     <option value="GB" selected={true} style="max-width: max-content;">{"GB"}</option>
                 // </select>
                 <div class="form-floating flex-grow-1">
-                    <input oninput={oninput_location} ref={locations_input_ref} id="location-list" class="form-control" list="location-list-options" Placeholder="Search for a location..." />
-                    <label for="location-list" class="form-label" style="color: #5c5c5c;">{"Search for a location..."}</label>
+                    <input oninput={oninput_location} ref={locations_input_ref} id="location-list" class="form-control" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px;" list="location-list-options" Placeholder="Search for a location..." />
+                    <label for="location-list" class="form-label">{"Search for a location..."}</label>
                 </div>
-                <button {onclick} class="btn btn-primary" style="border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem;" type="button" disabled={!valid_location}>{"Select"}</button>
+                <button {onclick} class={classes!("btn", "btn-primary")} style="border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem;" type="button" disabled={!valid_location}>{"Select"}</button>
                 <datalist id="location-list-options">
                     {
                         datalist_locations.data
@@ -234,6 +238,12 @@ fn locations_field(props: &LocationsFieldProps) -> Html {
                             .collect::<Html>()
                     }
                 </datalist>
+            </div>
+            <div class="form-text mb-3 ms-1">
+                {"See possible locations on "}
+                <a target="_blank" href="https://openweathermap.org/weathermap?basemap=map&cities=true&layer=temperature&lat=55.3791&lon=-3.6255&zoom=6">
+                    {"this map"}
+                </a>
             </div>
             <ChosenLocations locations={chosen_locations} />
         </>
@@ -260,7 +270,7 @@ fn chosen_location(props: &ChosenLocationProps) -> Html {
     html! {
         <li class={classes!("list-group-item", "d-flex", "justify-content-between", "align-items-center")}>
             <span>{name}</span>
-            <svg {onclick} xmlns="http://www.w3.org/2000/svg"  class={classes!("bi", "bi-x-circle", "icon-button")} viewBox="0 0 16 16" style="border-radius: 50%;">
+            <svg {onclick} xmlns="http://www.w3.org/2000/svg" role="button" class={classes!("bi", "bi-x-circle", "icon-button")} viewBox="0 0 16 16" style="">
                 <path  d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                 <path  d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
             </svg>
@@ -284,13 +294,19 @@ fn chosen_locations(props: &ChosenLocationsProps) -> Html {
         location_to_remove.set(None);
     }
 
+    let mut locations = props.locations.keys().collect::<Vec<_>>();
+    locations.sort_unstable();
+    let hide = props.locations.len() < 1;
     html! {
-        <ul class={classes!("list-group", "mb-3", "user-select-none")}>
+        <div class={classes!(if hide {"d-none"} else {""})}>
+            <p class="mb-0 ms-1">{format!("{}/5 locations chosen", props.locations.len())}</p>
+            <ul class={classes!("list-group", "mb-3", "user-select-none")}>
             {
-                props.locations.iter().map(|(name, _)| html! {
+                locations.iter().map(|&name| html! {
                     <ChosenLocation name={name.clone()} location_to_remove={location_to_remove.clone()} />
                 }).collect::<Html>()
             }
-        </ul>
+            </ul>
+        </div>
     }
 }
