@@ -1,10 +1,14 @@
 use chrono::Timelike;
 use ordered_float::NotNan;
-use plotly::{common::Title, layout::Axis};
-use serde::{Deserialize, Serialize};
+use plotly::{
+    common::{Marker, Title},
+    layout::Axis,
+};
+use serde::Deserialize;
 
 use super::requests;
 use crate::error::Error;
+use crate::theme::{AMBER, GREEN, RED, YELLOW};
 
 type DateTimeUtc = chrono::DateTime<chrono::Utc>;
 
@@ -24,17 +28,6 @@ pub struct ActivityDataResponse {
 pub struct ActivityData {
     pub updated_at: DateTimeUtc,
     pub activities: [ActivityDataPoint; 24],
-}
-
-#[derive(Serialize, Debug, PartialEq, Clone)]
-struct Template {
-    layout: LayoutTemplate,
-}
-
-#[derive(Serialize, Debug, PartialEq, Clone)]
-struct LayoutTemplate {
-    plot_bgcolor: String,
-    paper_bgcolor: String,
 }
 
 impl ActivityData {
@@ -78,11 +71,29 @@ impl ActivityData {
                 .map(|a| a.datetime.with_timezone(&chrono::Local).to_rfc3339())
                 .collect(),
             self.activities.iter().map(|a| a.value).collect(),
+        )
+        .marker(
+            Marker::new().color_array(
+                self.activities
+                    .iter()
+                    .map(|a| {
+                        if a.value < NotNan::new(50.).unwrap() {
+                            GREEN
+                        } else if a.value < NotNan::new(100.).unwrap() {
+                            YELLOW
+                        } else if a.value < NotNan::new(200.).unwrap() {
+                            AMBER
+                        } else {
+                            RED
+                        }
+                    })
+                    .collect(),
+            ),
         );
         plot.add_trace(trace);
 
         let layout = plotly::Layout::new()
-            .template_ref(&*plotly::themes::PLOTLY_DARK)
+            .template(&*plotly::themes::PLOTLY_DARK)
             .title(
                 Title::new(
                     format!(

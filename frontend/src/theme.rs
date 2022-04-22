@@ -14,3 +14,8 @@ impl Display for ThemeMode {
         }
     }
 }
+
+pub const GREEN: &'static str = "#00cc00";
+pub const YELLOW: &'static str = "#ffff57";
+pub const AMBER: &'static str = "#ffbf00";
+pub const RED: &'static str = "#eb0000";
