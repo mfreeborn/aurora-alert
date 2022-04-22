@@ -1785,7 +1785,7 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 [[package]]
 name = "plotly"
 version = "0.7.0"
-source = "git+https://github.com/mfreeborn/plotly?rev=9f44a8bcbc4c6850730069eb227810ab7b5940f5#9f44a8bcbc4c6850730069eb227810ab7b5940f5"
+source = "git+https://github.com/mfreeborn/plotly?rev=cdd910d1d71554731a5c4002abb60f764eb0957d#cdd910d1d71554731a5c4002abb60f764eb0957d"
 dependencies = [
  "askama",
  "dyn-clone",

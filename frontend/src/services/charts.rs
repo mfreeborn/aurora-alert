@@ -118,6 +118,10 @@ impl ActivityData {
             )
             .y_axis(Axis::new().title("Activity (nT)".into()));
         plot.set_layout(layout);
+
+        let config = plotly::Configuration::new().display_mode_bar(false);
+        plot.set_configuration(config);
+
         plot
     }
 }

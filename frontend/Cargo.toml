@@ -12,7 +12,7 @@ categories = ["gui", "wasm", "web-programming"]
 chrono = { version = "0.4.19", features = [ "serde", "wasmbind" ] }
 log = "0.4"
 ordered-float = { version = "2.0", features = [ "serde" ] }
-plotly = { git = "https://github.com/mfreeborn/plotly", rev = "9f44a8bcbc4c6850730069eb227810ab7b5940f5", features = [ "wasm" ] }
+plotly = { git = "https://github.com/mfreeborn/plotly", rev = "cdd910d1d71554731a5c4002abb60f764eb0957d", features = [ "wasm" ] }
 plotters = { version = "0.3", default_features = false, features = [ "datetime", "line_series" ] }
 plotters-backend = "0.3"
 plotters-canvas = "0.3"
