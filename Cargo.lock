@@ -358,9 +358,6 @@ dependencies = [
  "log",
  "ordered-float",
  "plotly",
- "plotters",
- "plotters-backend",
- "plotters-canvas",
  "reqwest",
  "serde",
  "serde_urlencoded",
@@ -539,13 +536,11 @@ version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "670ad68c9088c2a963aaa298cb369688cf3f9465ce5e2d4ca10e6e0098a1ce73"
 dependencies = [
- "js-sys",
  "libc",
  "num-integer",
  "num-traits",
  "serde",
  "time 0.1.44",
- "wasm-bindgen",
  "winapi",
 ]
 
@@ -1785,7 +1780,7 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 [[package]]
 name = "plotly"
 version = "0.7.0"
-source = "git+https://github.com/mfreeborn/plotly?rev=cdd910d1d71554731a5c4002abb60f764eb0957d#cdd910d1d71554731a5c4002abb60f764eb0957d"
+source = "git+https://github.com/mfreeborn/plotly?rev=780adcf9ab8727b77ca6707922d784b23e4e9af2#780adcf9ab8727b77ca6707922d784b23e4e9af2"
 dependencies = [
  "askama",
  "dyn-clone",
@@ -1796,39 +1791,9 @@ dependencies = [
  "rand_distr",
  "serde",
  "serde_json",
+ "serde_repr",
  "wasm-bindgen",
  "wasm-bindgen-futures",
-]
-
-[[package]]
-name = "plotters"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32a3fd9ec30b9749ce28cd91f255d569591cdf937fe280c312143e3c4bad6f2a"
-dependencies = [
- "chrono",
- "num-traits",
- "plotters-backend",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "plotters-backend"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d88417318da0eaf0fdcdb51a0ee6c3bed624333bff8f946733049380be67ac1c"
-
-[[package]]
-name = "plotters-canvas"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "498a82bf654581fa4df6c1bd73e56f8556bdeec5eca5a0989d170ca0728ccace"
-dependencies = [
- "js-sys",
- "plotters-backend",
- "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
