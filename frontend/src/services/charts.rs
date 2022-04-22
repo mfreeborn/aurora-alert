@@ -1,6 +1,7 @@
 use chrono::Timelike;
 use ordered_float::NotNan;
-use serde::Deserialize;
+use plotly::{common::Title, layout::Axis};
+use serde::{Deserialize, Serialize};
 
 use super::requests;
 use crate::error::Error;
@@ -25,6 +26,17 @@ pub struct ActivityData {
     pub activities: [ActivityDataPoint; 24],
 }
 
+#[derive(Serialize, Debug, PartialEq, Clone)]
+struct Template {
+    layout: LayoutTemplate,
+}
+
+#[derive(Serialize, Debug, PartialEq, Clone)]
+struct LayoutTemplate {
+    plot_bgcolor: String,
+    paper_bgcolor: String,
+}
+
 impl ActivityData {
     fn from_response(resp: ActivityDataResponse, end: Option<DateTimeUtc>) -> Self {
         if resp.activities.len() == 24 {
@@ -42,7 +54,6 @@ impl ActivityData {
             let end = end.unwrap().date().and_hms(end.unwrap().hour(), 0, 0);
             let mut activities = resp.activities;
             for i in (activities.len() as i64)..24 {
-                log::debug!("{i}");
                 activities.push(ActivityDataPoint {
                     datetime: end - chrono::Duration::hours(i),
                     // safe to unwrap because 0. is not NaN
@@ -56,6 +67,47 @@ impl ActivityData {
                 activities: activities.try_into().unwrap(),
             }
         }
+    }
+
+    pub fn to_plot(&self) -> plotly::Plot {
+        let mut plot = plotly::Plot::new();
+
+        let trace = plotly::Bar::new(
+            self.activities
+                .iter()
+                .map(|a| a.datetime.with_timezone(&chrono::Local).to_rfc3339())
+                .collect(),
+            self.activities.iter().map(|a| a.value).collect(),
+        );
+        plot.add_trace(trace);
+
+        let layout = plotly::Layout::new()
+            .template_ref(&*plotly::themes::PLOTLY_DARK)
+            .title(
+                Title::new(
+                    format!(
+                        "Lastest Geomagnetic Activity<br><sub>Last updated {}</sub>",
+                        self.updated_at
+                            .with_timezone(&chrono::Local)
+                            .format("%-d %b %y %H:%M %Z")
+                    )
+                    .as_str(),
+                )
+                .x(0.5),
+            )
+            .x_axis(
+                Axis::new().title(
+                    format!(
+                        "Time ({})",
+                        self.updated_at.with_timezone(&chrono::Local).format("%Z")
+                    )
+                    .as_str()
+                    .into(),
+                ),
+            )
+            .y_axis(Axis::new().title("Activity (nT)".into()));
+        plot.set_layout(layout);
+        plot
     }
 }
 

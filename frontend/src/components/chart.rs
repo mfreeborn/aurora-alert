@@ -1,12 +1,12 @@
 mod controls;
 mod plot;
 
+pub use plot::Plot;
 use yew::prelude::*;
 use yew_hooks::use_async;
 use yew_hooks::use_interval;
 
 use self::controls::Controls;
-use self::plot::ActivityPlot;
 use crate::services::charts::{self, ActivityData};
 type DateTimeUtc = chrono::DateTime<chrono::Utc>;
 
@@ -62,13 +62,15 @@ pub fn activity_chart() -> Html {
         );
     }
 
+    let plot_id = "activity-plot".to_string();
+
     html! {
         <div id="activity-chart">
             {
                 if let Some(data) = (*chart_data_handle).clone() {
                     html! {
                         <>
-                            <ActivityPlot {data} />
+                            <Plot id={plot_id.clone()} plot={data.to_plot()} />
                             <Controls selected_hour_handle={selected_hour_handle.clone()} chart_data_handle={chart_data_handle.clone()} />
                         </>
                     }
