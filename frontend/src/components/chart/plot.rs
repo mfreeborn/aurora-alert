@@ -1,10 +1,5 @@
 use yew::prelude::*;
 
-// const GREEN: RGBColor = RGBColor(0, 204, 0);
-// const YELLOW: RGBColor = RGBColor(255, 255, 87);
-// const AMBER: RGBColor = RGBColor(255, 191, 0);
-// const RED: RGBColor = RGBColor(235, 0, 0);
-
 #[derive(Properties, PartialEq)]
 pub struct PlotProps {
     pub id: String,
@@ -25,10 +20,17 @@ pub fn plot(props: &PlotProps) -> Html {
         }
     });
 
-    yew_hooks::use_effect_once(move || {
-        p.run();
-        || ()
-    });
+    {
+        let id = id.clone();
+        let plot = plot.clone();
+        use_effect_with_deps(
+            move |(_, _)| {
+                p.run();
+                || ()
+            },
+            (id, plot),
+        );
+    }
 
     html! {
         <div id={id.clone()} class={class.clone()}></div>

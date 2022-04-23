@@ -11,14 +11,14 @@ pub fn app() -> Html {
 
     html! {
         <BrowserRouter>
-            //<ContextProvider<Theme> context={theme.clone()}>
+            <ContextProvider<ThemeMode> context={(*selected_theme_handle).clone()}>
                 <div id="content" data-theme={(*selected_theme_handle).clone().to_string()}>
                     <Header {selected_theme_handle} />
                     <div id="page-content" class={classes!("container")}>
                         <routes::PageSwitch />
                     </div>
                 </div>
-            //</ContextProvider<Theme>>
+            </ContextProvider<ThemeMode>>
         </BrowserRouter>
     }
 }

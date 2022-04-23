@@ -3,12 +3,13 @@ use ordered_float::NotNan;
 use plotly::{
     common::{Marker, Title},
     layout::Axis,
+    themes::{PLOTLY_DARK, PLOTLY_WHITE},
 };
 use serde::Deserialize;
 
 use super::requests;
 use crate::error::Error;
-use crate::theme::{AMBER, GREEN, RED, YELLOW};
+use crate::theme::{ThemeMode, AMBER, GREEN, RED, YELLOW};
 
 type DateTimeUtc = chrono::DateTime<chrono::Utc>;
 
@@ -62,7 +63,7 @@ impl ActivityData {
         }
     }
 
-    pub fn to_plot(&self) -> plotly::Plot {
+    pub fn to_plot(&self, theme_mode: ThemeMode) -> plotly::Plot {
         let mut plot = plotly::Plot::new();
 
         let trace = plotly::Bar::new(
@@ -93,11 +94,15 @@ impl ActivityData {
         plot.add_trace(trace);
 
         let layout = plotly::Layout::new()
-            .template(&*plotly::themes::PLOTLY_DARK)
+            .template(if theme_mode == ThemeMode::Dark {
+                &*PLOTLY_DARK
+            } else {
+                &*PLOTLY_WHITE
+            })
             .title(
                 Title::new(
                     format!(
-                        "Lastest Geomagnetic Activity<br><sub>Last updated {}</sub>",
+                        "<b>Lastest Geomagnetic Activity</b><br><sub>Last updated {}</sub>",
                         self.updated_at
                             .with_timezone(&chrono::Local)
                             .format("%-d %b %y %H:%M %Z")
@@ -117,6 +122,7 @@ impl ActivityData {
                 ),
             )
             .y_axis(Axis::new().title("Activity (nT)".into()));
+
         plot.set_layout(layout);
 
         let config = plotly::Configuration::new().display_mode_bar(false);

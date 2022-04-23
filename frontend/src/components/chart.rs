@@ -8,11 +8,14 @@ use yew_hooks::use_interval;
 
 use self::controls::Controls;
 use crate::services::charts::{self, ActivityData};
+use crate::theme::ThemeMode;
+
 type DateTimeUtc = chrono::DateTime<chrono::Utc>;
 
 #[function_component(ActivityChart)]
 pub fn activity_chart() -> Html {
     log::debug!("render activity chart");
+    let theme_mode = use_context::<ThemeMode>().unwrap();
 
     // None == the latest hour
     let selected_hour_handle = use_state(|| None::<DateTimeUtc>);
@@ -70,7 +73,7 @@ pub fn activity_chart() -> Html {
                 if let Some(data) = (*chart_data_handle).clone() {
                     html! {
                         <>
-                            <Plot id={plot_id.clone()} plot={data.to_plot()} />
+                            <Plot id={plot_id.clone()} plot={data.to_plot(theme_mode)} />
                             <Controls selected_hour_handle={selected_hour_handle.clone()} chart_data_handle={chart_data_handle.clone()} />
                         </>
                     }
