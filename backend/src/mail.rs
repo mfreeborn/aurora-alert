@@ -93,6 +93,42 @@ impl VerifyUserBuilder {
     }
 }
 
+pub struct UserAlreadyRegisteredBuilder {
+    template: templates::Template,
+    to_address: String,
+    subject: String,
+}
+
+impl UserAlreadyRegisteredBuilder {
+    fn new(to_address: &str) -> Self {
+        Self {
+            template: templates::Template::UserAlreadyRegistered,
+            to_address: to_address.to_string(),
+            subject: String::from("Re-registering to Aurora Alert"),
+        }
+    }
+
+    pub fn add_context(
+        self,
+        user: &db::UserWithLocationsModel,
+    ) -> Result<RenderableEmailBuilder, errors::ApiError> {
+        let context =
+            templates::Context::from_serialize(user).map_err(|e| errors::ApiError::Template {
+                context: format!(
+                    "Error creating context for '{}' template: {}",
+                    &self.template, e
+                ),
+            })?;
+
+        Ok(RenderableEmailBuilder {
+            template: self.template,
+            to_address: self.to_address,
+            subject: self.subject,
+            context,
+        })
+    }
+}
+
 pub struct RenderableEmailBuilder {
     template: templates::Template,
     to_address: String,
@@ -172,5 +208,9 @@ impl Email {
 
     pub fn new_verify_user(to_address: &str) -> VerifyUserBuilder {
         VerifyUserBuilder::new(to_address)
+    }
+
+    pub fn new_user_already_registered(to_address: &str) -> UserAlreadyRegisteredBuilder {
+        UserAlreadyRegisteredBuilder::new(to_address)
     }
 }

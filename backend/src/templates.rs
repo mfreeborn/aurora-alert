@@ -27,15 +27,22 @@ pub enum Template {
     Alert,
     #[display(fmt = "verify.html")]
     VerifyUser,
+    #[display(fmt = "already_registered.html")]
+    UserAlreadyRegistered,
 
-    // beware: this variant *must* remain the last one to be declared
+    // Beware: this variant *must* remain the last one to be declared
     __COUNT,
 }
 
 impl Template {
     const fn all_variants() -> [Self; Self::__COUNT as usize] {
-        // beware: parent templates (i.e. base.html) must appear before child templates
-        [Template::Base, Template::Alert, Template::VerifyUser]
+        // Beware: parent templates (i.e. base.html) must appear before child templates
+        [
+            Template::Base,
+            Template::Alert,
+            Template::VerifyUser,
+            Template::UserAlreadyRegistered,
+        ]
     }
 
     pub fn render(

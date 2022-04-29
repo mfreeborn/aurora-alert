@@ -114,25 +114,46 @@ async fn verify(
 
 #[post("/users")]
 async fn register(
-    user: web::Json<db::RegisterUser>,
+    user_details: web::Json<db::RegisterUser>,
     pool: db::Extractor,
     template_engine: templates::Extractor,
     mailer: mail::Extractor,
 ) -> Result<impl Responder> {
-    let user =
-        db::insert_user(&user, pool.get_ref())
+    // Two cases to handle:
+    //     1. The user already exists
+    //     2. The user does not exist
+    //
+    // If the user already exists, the frontend should act as if it is a succesful registration when the
+    // registration form is submitted, but they should be emailed an existing user email, rather than a
+    // new user email
+
+    let user = db::get_user_by_email(&user_details, pool.get_ref())
+        .await
+        .map_err(|e| errors::ApiError::Database {
+            context: format!("Checking user exists failed: {}", e),
+        })?;
+
+    if let Some(user) = user {
+        mail::Email::new_user_already_registered(&user.email)
+            .add_context(&user)?
+            .render_body(template_engine.get_ref())?
+            .build_email()?
+            .send(mailer.get_ref().clone());
+    } else {
+        let user = db::insert_user(&user_details, pool.get_ref())
             .await
             .map_err(|e| errors::ApiError::Database {
                 context: format!("User insert failed: {}", e),
             })?;
 
-    mail::Email::new_verify_user(&user.email)
-        .add_context(&user)?
-        .render_body(template_engine.get_ref())?
-        .build_email()?
-        .send(mailer.get_ref().clone());
+        mail::Email::new_verify_user(&user.email)
+            .add_context(&user)?
+            .render_body(template_engine.get_ref())?
+            .build_email()?
+            .send(mailer.get_ref().clone());
+    };
 
-    Ok(JsonResponse::new("User registered succesfully"))
+    Ok(JsonResponse::new("User registration initiated succesfully"))
 }
 
 #[derive(Deserialize)]

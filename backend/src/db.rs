@@ -16,6 +16,44 @@ pub fn init_pool(database_url: &str) -> Result<Pool, sqlx::Error> {
         .connect_lazy(database_url)
 }
 
+pub async fn get_user_by_email(
+    user: &RegisterUser,
+    pool: &Pool,
+) -> anyhow::Result<Option<UserWithLocationsModel>> {
+    let user_locations = sqlx::query_as!(
+        UserWithLocationModel,
+        r#"
+            SELECT
+              users.user_id,
+              users.email,
+              users.alert_threshold as "alert_threshold: types::AlertLevel",
+              users.last_alerted_at as "last_alerted_at: chrono::DateTime<chrono::Utc>",
+              locations.location_id as "location_id: types::Location",
+              locations.name,
+              locations.weather_description,
+              locations.cloud_cover,
+              locations.updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+            FROM 
+              users, locations, user_locations
+            WHERE
+              users.email = ?
+            AND 
+              users.user_id = user_locations.user_id
+            AND
+              locations.location_id = user_locations.location_id
+        "#,
+        user.email
+    )
+    .fetch_all(pool)
+    .await?;
+
+    if !user_locations.is_empty() {
+        Ok(Some(UserWithLocationsModel::one_from_rows(user_locations)))
+    } else {
+        Ok(None)
+    }
+}
+
 #[derive(Serialize)]
 pub struct LocationNameModel {
     pub location_id: i64,
