@@ -55,7 +55,7 @@ pub fn registration_form() -> Html {
                                     </svg>
                                     <div>
                                         <p class="mb-2" style="font-weight: 500;">{"Thanks for registering!"}</p>
-                                        <p class="mb-0">{"Check your emails to verify your account so that you can start to receive aurora alerts. Head back to the "}
+                                        <p class="mb-0">{"You'll shortly receive an email to verify your account so that you can start to receive aurora alerts. In the meantime, head back to the "}
                                         <LinkHome text="homepage" />
                                         {" to see the latest aurora activity."}</p>
                                     </div>
