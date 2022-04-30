@@ -67,11 +67,16 @@ pub async fn get_locations(
     let locations = sqlx::query_as!(
         LocationNameModel,
         r#"
-            SELECT location_id, name
-            FROM locations
-            WHERE name LIKE ? || '%'
-            ORDER BY name DESC
-            LIMIT 5
+            SELECT 
+              location_id, name
+            FROM 
+              locations
+            WHERE 
+              name LIKE ? || '%'
+            ORDER BY 
+              name DESC
+            LIMIT 
+              5
         "#,
         search_str
     )
@@ -87,10 +92,14 @@ pub async fn set_user_verified(
 ) -> anyhow::Result<Option<String>> {
     let user_id = sqlx::query_scalar!(
         "
-            UPDATE users
-            SET verified = 1
-            WHERE user_id = ? AND email = ?
-            RETURNING user_id
+            UPDATE 
+              users
+            SET 
+              verified = 1
+            WHERE 
+              user_id = ? AND email = ?
+            RETURNING 
+              user_id
         ",
         user_id,
         email
@@ -108,9 +117,12 @@ pub async fn delete_user(
 ) -> anyhow::Result<Option<String>> {
     let user_id = sqlx::query_scalar!(
         "
-            DELETE FROM users
-            WHERE user_id = ? AND email = ?
-            RETURNING user_id
+            DELETE FROM 
+              users
+            WHERE 
+              user_id = ? AND email = ?
+            RETURNING 
+              user_id
         ",
         user_id,
         email
@@ -135,9 +147,12 @@ pub async fn insert_user(
     let mut tx = pool.begin().await?;
     let user_id = sqlx::query_scalar!(
         "
-            INSERT INTO users (email, alert_threshold)
-            VALUES (?, ?)
-            RETURNING user_id
+            INSERT INTO users 
+              (email, alert_threshold)
+            VALUES 
+              (?, ?)
+            RETURNING
+              user_id
         ",
         user.email,
         user.alert_threshold
@@ -148,8 +163,10 @@ pub async fn insert_user(
     for location in &user.locations {
         sqlx::query!(
             "
-                INSERT INTO user_locations (user_id, location_id)
-                VALUES (?, ?)
+                INSERT INTO user_locations
+                  (user_id, location_id)
+                VALUES 
+                  (?, ?)
             ",
             user_id,
             location
@@ -303,9 +320,12 @@ pub async fn update_user_last_alerted_at(user_id: &str, pool: &Pool) -> anyhow::
     let now = chrono::Utc::now();
     sqlx::query!(
         "
-            UPDATE users
-            SET last_alerted_at = ?
-            WHERE user_id = ?
+            UPDATE
+              users
+            SET
+              last_alerted_at = ?
+            WHERE 
+              user_id = ?
         ",
         now,
         user_id
@@ -405,9 +425,12 @@ pub async fn get_verified_users(pool: &Pool) -> anyhow::Result<Vec<UserWithLocat
               locations.updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
             FROM
               users, locations, user_locations
-            WHERE users.user_id = user_locations.user_id
-            AND locations.location_id = user_locations.location_id
-            AND users.verified = 1
+            WHERE 
+              users.user_id = user_locations.user_id
+            AND 
+              locations.location_id = user_locations.location_id
+            AND 
+              users.verified = 1
         "#
     )
     .fetch_all(pool)
@@ -421,8 +444,10 @@ pub async fn get_verified_users(pool: &Pool) -> anyhow::Result<Vec<UserWithLocat
 pub async fn delete_unverified_users(pool: &Pool) -> anyhow::Result<u64> {
     let deleted_users_count = sqlx::query!(
         r#"
-            DELETE FROM users
-            WHERE NOT verified
+            DELETE FROM 
+              users
+            WHERE 
+              NOT verified
         "#,
     )
     .execute(pool)
@@ -438,81 +463,49 @@ pub async fn update_aurora_activity(
 ) -> anyhow::Result<()> {
     let mut tx = pool.begin().await?;
     let acts = activity.activities;
+    #[rustfmt::skip]
     sqlx::query!(
         "
-        INSERT INTO 
-          activity_data (datetime, value)
-        VALUES
-          (?, ?), (?, ?),  -- 2
-          (?, ?), (?, ?),  -- 4
-          (?, ?), (?, ?),  -- 6
-          (?, ?), (?, ?),  -- 8
-          (?, ?), (?, ?),  -- 10
-          (?, ?), (?, ?),  -- 12
-          (?, ?), (?, ?),  -- 14
-          (?, ?), (?, ?),  -- 16
-          (?, ?), (?, ?),  -- 18
-          (?, ?), (?, ?),  -- 20
-          (?, ?), (?, ?),  -- 22
-          (?, ?), (?, ?)   -- 24
+            INSERT INTO activity_data
+              (datetime, value)
+            VALUES
+              (?, ?), (?, ?),  -- 2
+              (?, ?), (?, ?),  -- 4
+              (?, ?), (?, ?),  -- 6
+              (?, ?), (?, ?),  -- 8
+              (?, ?), (?, ?),  -- 10
+              (?, ?), (?, ?),  -- 12
+              (?, ?), (?, ?),  -- 14
+              (?, ?), (?, ?),  -- 16
+              (?, ?), (?, ?),  -- 18
+              (?, ?), (?, ?),  -- 20
+              (?, ?), (?, ?),  -- 22
+              (?, ?), (?, ?)   -- 24
         ",
-        acts[0].datetime,
-        acts[0].value,
-        acts[1].datetime,
-        acts[1].value,
-        acts[2].datetime,
-        acts[2].value,
-        acts[3].datetime,
-        acts[3].value,
-        acts[4].datetime,
-        acts[4].value,
-        acts[5].datetime,
-        acts[5].value,
-        acts[6].datetime,
-        acts[6].value,
-        acts[7].datetime,
-        acts[7].value,
-        acts[8].datetime,
-        acts[8].value,
-        acts[9].datetime,
-        acts[9].value,
-        acts[10].datetime,
-        acts[10].value,
-        acts[11].datetime,
-        acts[11].value,
-        acts[12].datetime,
-        acts[12].value,
-        acts[13].datetime,
-        acts[13].value,
-        acts[14].datetime,
-        acts[14].value,
-        acts[15].datetime,
-        acts[15].value,
-        acts[16].datetime,
-        acts[16].value,
-        acts[17].datetime,
-        acts[17].value,
-        acts[18].datetime,
-        acts[18].value,
-        acts[19].datetime,
-        acts[19].value,
-        acts[20].datetime,
-        acts[20].value,
-        acts[21].datetime,
-        acts[21].value,
-        acts[22].datetime,
-        acts[22].value,
-        acts[23].datetime,
-        acts[23].value,
+        acts[0].datetime,  acts[0].value,  acts[1].datetime,  acts[1].value,
+        acts[2].datetime,  acts[2].value,  acts[3].datetime,  acts[3].value,
+        acts[4].datetime,  acts[4].value,  acts[5].datetime,  acts[5].value,
+        acts[6].datetime,  acts[6].value,  acts[7].datetime,  acts[7].value,
+        acts[8].datetime,  acts[8].value,  acts[9].datetime,  acts[9].value,
+        acts[10].datetime, acts[10].value, acts[11].datetime, acts[11].value,
+        acts[12].datetime, acts[12].value, acts[13].datetime, acts[13].value,
+        acts[14].datetime, acts[14].value, acts[15].datetime, acts[15].value,
+        acts[16].datetime, acts[16].value, acts[17].datetime, acts[17].value,
+        acts[18].datetime, acts[18].value, acts[19].datetime, acts[19].value,
+        acts[20].datetime, acts[20].value, acts[21].datetime, acts[21].value,
+        acts[22].datetime, acts[22].value, acts[23].datetime, acts[23].value,
     )
     .execute(&mut tx)
     .await?;
 
     sqlx::query!(
         "
-            INSERT INTO 
-              activity_data_meta (activity_data_meta_id, updated_at)
-            VALUES (1, ?)
+            UPDATE
+               activity_data_meta
+            SET
+              updated_at = ?
+            WHERE
+              activity_data_meta_id = 1
         ",
         activity.updated_at
     )
@@ -531,9 +524,12 @@ pub async fn get_activity_data(
     let mut tx = pool.begin().await?;
     let updated_at = sqlx::query_scalar!(
         r#"
-            SELECT updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
-            FROM activity_data_meta
-            WHERE activity_data_meta_id = 1
+            SELECT 
+              updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+            FROM 
+              activity_data_meta
+            WHERE 
+              activity_data_meta_id = 1
         "#
     )
     .fetch_one(&mut tx)
