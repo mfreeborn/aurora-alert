@@ -9,7 +9,7 @@ keywords = ["yew", "trunk"]
 categories = ["gui", "wasm", "web-programming"]
 
 [dependencies]
-chrono = { version = "0.4", features = [ "serde" ] }
+chrono = { version = "0.4", features = [ "serde", "wasmbind" ] }
 js-sys = "0.3"
 log = "0.4"
 ordered-float = { version = "2", features = [ "serde" ] }
