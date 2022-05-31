@@ -535,23 +535,28 @@ pub async fn get_activity_data(
     .fetch_one(&mut tx)
     .await?;
 
-    let activities = sqlx::query_as!(
-        crate::apis::aurora_watch::ActivityDataPoint,
+    let activities = sqlx::query_as::<_, crate::apis::aurora_watch::ActivityDataPoint>(
         r#"
+            WITH RECURSIVE datetimes(datetime) AS (
+              VALUES(?)
+              UNION ALL
+              SELECT datetime(datetime, '-1 hour')
+              FROM datetimes
+              WHERE datetime > datetime(?, '-23 hour')
+            )
             SELECT 
-              datetime as "datetime: chrono::DateTime<chrono::Utc>",
-              value as "value: f64"
+              datetimes.datetime ,
+              activity_data.value
             FROM 
-              activity_data
-            WHERE
-              datetime <= ?
+              datetimes
+            LEFT OUTER JOIN
+              activity_data ON datetimes.datetime = activity_data.datetime
             ORDER BY
-              datetime DESC
-            LIMIT
-              24
+              datetimes.datetime DESC
         "#,
-        end
     )
+    .bind(end)
+    .bind(end)
     .fetch_all(&mut tx)
     .await?;
 
@@ -559,6 +564,6 @@ pub async fn get_activity_data(
 
     Ok(crate::apis::aurora_watch::ActivityData {
         updated_at,
-        activities,
+        activities: activities.try_into().unwrap(),
     })
 }

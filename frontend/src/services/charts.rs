@@ -1,9 +1,11 @@
-use chrono::Timelike;
 use ordered_float::NotNan;
 use plotly::{
     common::{Marker, Title},
-    layout::Axis,
-    themes::{PLOTLY_DARK, PLOTLY_WHITE},
+    configuration::DisplayModeBar,
+    layout::{
+        themes::{PLOTLY_DARK, PLOTLY_WHITE},
+        Axis,
+    },
 };
 use serde::Deserialize;
 
@@ -32,34 +34,11 @@ pub struct ActivityData {
 }
 
 impl ActivityData {
-    fn from_response(resp: ActivityDataResponse, end: Option<DateTimeUtc>) -> Self {
-        if resp.activities.len() == 24 {
-            ActivityData {
-                updated_at: resp.updated_at,
-                // this unwrap won't fail because we already checked that 24 elements are present
-                activities: resp.activities.try_into().unwrap(),
-            }
-        } else if end.is_none() {
-            // there should never be an occassion where both the end time is Some<_> and the response
-            // has fewer than 24 entries
-            unreachable!()
-        } else {
-            // we need to pad out the activities
-            let end = end.unwrap().date().and_hms(end.unwrap().hour(), 0, 0);
-            let mut activities = resp.activities;
-            for i in (activities.len() as i64)..24 {
-                activities.push(ActivityDataPoint {
-                    datetime: end - chrono::Duration::hours(i),
-                    // safe to unwrap because 0. is not NaN
-                    value: NotNan::new(0.).unwrap(),
-                });
-            }
-            ActivityData {
-                updated_at: resp.updated_at,
-                // safe to unwrap because we've just ensured that the activites vec is indeed 24
-                // elements long
-                activities: activities.try_into().unwrap(),
-            }
+    fn from_response(resp: ActivityDataResponse) -> Self {
+        ActivityData {
+            updated_at: resp.updated_at,
+            // this unwrap won't fail because we already checked that 24 elements are present
+            activities: resp.activities.try_into().unwrap(),
         }
     }
 
@@ -90,55 +69,53 @@ impl ActivityData {
                     })
                     .collect(),
             ),
-        );
+        )
+        .hover_template(r#"<b>%{x|%-d %b %y %H:%M}</b><br>Activity: %{y:.1f}nT<extra></extra>"#);
         plot.add_trace(trace);
 
         let layout = plotly::Layout::new()
-            .template(if theme_mode == ThemeMode::Dark {
-                &*PLOTLY_DARK
-            } else {
-                &*PLOTLY_WHITE
+            .template(match theme_mode {
+                ThemeMode::Dark => &*PLOTLY_DARK,
+                ThemeMode::Light => &*PLOTLY_WHITE,
             })
             .title(
-                Title::new(
-                    format!(
-                        "<b>Lastest Geomagnetic Activity</b><br><sub>Last updated {}</sub>",
-                        self.updated_at
-                            .with_timezone(&chrono::Local)
-                            .format("%-d %b %y %H:%M %Z")
-                    )
-                    .as_str(),
-                )
+                Title::new(&format!(
+                    "<b>Lastest Geomagnetic Activity</b><br><sub>Last updated {}</sub>",
+                    self.updated_at
+                        .with_timezone(&chrono::Local)
+                        .format("%-d %b %y %H:%M %Z")
+                ))
                 .x(0.5),
             )
             .x_axis(
-                Axis::new().title(
-                    format!(
-                        "Time ({})",
-                        self.updated_at.with_timezone(&chrono::Local).format("%Z")
+                Axis::new()
+                    .title(
+                        format!(
+                            "Time ({})",
+                            self.updated_at.with_timezone(&chrono::Local).format("%Z")
+                        )
+                        .as_str()
+                        .into(),
                     )
-                    .as_str()
-                    .into(),
-                ),
+                    .fixed_range(true),
             )
-            .y_axis(Axis::new().title("Activity (nT)".into()));
+            .y_axis(Axis::new().title("Activity (nT)".into()).fixed_range(true));
 
         plot.set_layout(layout);
 
-        let config = plotly::Configuration::new().display_mode_bar(false);
+        let config = plotly::Configuration::new()
+            .display_mode_bar(DisplayModeBar::False)
+            .scroll_zoom(false)
+            .show_axis_drag_handles(false);
         plot.set_configuration(config);
 
         plot
     }
 }
 
-pub async fn get_activity_data(end: Option<DateTimeUtc>) -> Result<ActivityData, Error> {
-    let params = if let Some(end) = end {
-        format!("?end={end}")
-    } else {
-        "".to_string()
-    };
+pub async fn get_activity_data(end: DateTimeUtc) -> Result<ActivityData, Error> {
+    let params = format!("?end={end}");
     let data = requests::get::<ActivityDataResponse>(format!("/activity{params}")).await?;
 
-    Ok(ActivityData::from_response(data, end))
+    Ok(ActivityData::from_response(data))
 }

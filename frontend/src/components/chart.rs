@@ -1,6 +1,7 @@
 mod controls;
 mod plot;
 
+use chrono::Timelike;
 pub use plot::Plot;
 use yew::prelude::*;
 use yew_hooks::use_async;
@@ -10,15 +11,15 @@ use self::controls::Controls;
 use crate::services::charts::{self, ActivityData};
 use crate::theme::ThemeMode;
 
-type DateTimeUtc = chrono::DateTime<chrono::Utc>;
-
 #[function_component(ActivityChart)]
 pub fn activity_chart() -> Html {
     log::debug!("render activity chart");
     let theme_mode = use_context::<ThemeMode>().unwrap();
 
-    // None == the latest hour
-    let selected_hour_handle = use_state(|| None::<DateTimeUtc>);
+    let selected_hour_handle = use_state(|| {
+        let now = chrono::Utc::now();
+        now.date().and_hms(now.time().hour(), 0, 0)
+    });
     let chart_data_handle = use_state_eq(|| None::<ActivityData>);
 
     let fetch_chart_data = {
@@ -53,13 +54,12 @@ pub fn activity_chart() -> Html {
 
     {
         let fetch_chart_data = fetch_chart_data;
-        let selected_hour = *selected_hour_handle;
         use_interval(
             move || {
                 // only fetch the data on an interval when the user is viewing the latest data
-                if selected_hour.is_none() {
-                    fetch_chart_data.run();
-                }
+                //if selected_hour.is_none() {
+                fetch_chart_data.run();
+                //}
             },
             5000,
         );
@@ -74,7 +74,7 @@ pub fn activity_chart() -> Html {
                     html! {
                         <>
                             <Plot id={plot_id.clone()} plot={data.to_plot(theme_mode)} />
-                            <Controls selected_hour_handle={selected_hour_handle.clone()} chart_data_handle={chart_data_handle.clone()} />
+                            <Controls selected_hour_handle={selected_hour_handle.clone()} />
                         </>
                     }
                 } else {

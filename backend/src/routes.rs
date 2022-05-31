@@ -1,4 +1,5 @@
 use actix_web::{delete, get, post, web, Responder, Result};
+use chrono::Timelike;
 use serde::{Deserialize, Serialize};
 
 use crate::db;
@@ -166,7 +167,10 @@ async fn activity(
     params: web::Query<ActivityRouteParams>,
     pool: db::Extractor,
 ) -> Result<impl Responder> {
-    let end = params.end.unwrap_or_else(|| chrono::Utc::now());
+    let end = params.end.unwrap_or_else(|| {
+        let now = chrono::Utc::now();
+        now.date().and_hms(now.time().hour(), 0, 0)
+    });
     let activity_data = db::get_activity_data(end, pool.get_ref())
         .await
         .map_err(|e| errors::ApiError::Api {

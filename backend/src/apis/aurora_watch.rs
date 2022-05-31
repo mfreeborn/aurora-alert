@@ -42,7 +42,7 @@ pub async fn get_alert_level() -> anyhow::Result<types::CurrentStatus> {
 
 type DT = chrono::DateTime<chrono::Utc>;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct ActivityDataPoint {
     pub datetime: DT,
     pub value: f64,
@@ -51,7 +51,7 @@ pub struct ActivityDataPoint {
 #[derive(Debug, Serialize)]
 pub struct ActivityData {
     pub updated_at: DT,
-    pub activities: Vec<ActivityDataPoint>,
+    pub activities: [ActivityDataPoint; 24],
 }
 
 fn parse_single_value(mut lines: std::str::Lines) -> Result<(&str, std::str::Lines)> {
@@ -83,11 +83,16 @@ fn parse_activity(line: &str) -> Result<ActivityDataPoint> {
         )
     })?;
 
+    let mut value = value.parse::<f64>()?;
+    if value.is_nan() {
+        value = 0.0;
+    }
+
     // implicitly skip the 4th item in the activity line, which is the alert level
 
     Ok(ActivityDataPoint {
         datetime: chrono::Utc.datetime_from_str(datetime, "%FT%T%#z")?,
-        value: value.parse()?,
+        value,
     })
 }
 
@@ -111,7 +116,8 @@ impl ActivityData {
 
         Ok(Self {
             updated_at: chrono::Utc.datetime_from_str(updated_at, "%FT%T%#z")?,
-            activities,
+            // The api always returns 24 results. Missing entries have a value of nan, which we convert to 0.0
+            activities: activities.try_into().unwrap(),
         })
     }
 }
