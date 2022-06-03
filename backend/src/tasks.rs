@@ -7,7 +7,7 @@ use crate::helpers;
 use crate::templates;
 use crate::types;
 
-/// Initialise and start off server background tasks
+/// Initialise and start off server background tasks.
 pub fn init(
     db: &db::DbPool,
     template_engine: &templates::TemplateEngine,
