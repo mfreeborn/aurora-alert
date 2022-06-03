@@ -12,7 +12,6 @@ CREATE UNIQUE INDEX idx_users_email ON users (email);
 CREATE TABLE alert_level (
     alert_level_id INTEGER PRIMARY KEY NOT NULL,
     alert_level TEXT NOT NULL CHECK(alert_level in ('green', 'yellow', 'amber', 'red')),
-    previous_alert_level TEXT NOT NULL CHECK(alert_level in ('green', 'yellow', 'amber', 'red')),
     updated_at TEXT NOT NULL
 );
 
@@ -57,8 +56,8 @@ CREATE TABLE activity_data_meta (
 INSERT INTO users (email, alert_threshold, verified)
 VALUES ('my_email', 'yellow', 1);
 
-INSERT INTO alert_level (alert_level_id, alert_level, previous_alert_level, updated_at)
-VALUES (1, 'green', 'green', '2020-01-01 00:00:00');
+INSERT INTO alert_level (alert_level_id, alert_level, updated_at)
+VALUES (1, 'green', '2020-01-01 00:00:00');
 
 INSERT INTO locations (location_id, name, weather_description, cloud_cover, updated_at)
 VALUES
