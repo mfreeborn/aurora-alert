@@ -517,12 +517,10 @@ pub async fn update_aurora_activity(
 
     sqlx::query!(
         "
-            UPDATE
-               activity_data_meta
-            SET
-              updated_at = ?
-            WHERE
-              activity_data_meta_id = 1
+            INSERT INTO activity_data_meta
+              (activity_data_meta_id, updated_at)
+            VALUES
+              (1, ?)
         ",
         activity.updated_at
     )
