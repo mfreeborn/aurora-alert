@@ -1,25 +1,37 @@
 use std::collections::HashMap;
 
-use actix_web::web;
+use axum::Extension as AxumExtension;
 use serde::{Deserialize, Serialize};
-use sqlx::{self, sqlite::SqlitePoolOptions, SqlitePool};
+use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 
 use crate::apis;
-use crate::types;
+use crate::types::{self, DateTimeUtc};
+use crate::Result;
 
-pub type Pool = SqlitePool;
-pub type Extractor = web::Data<Pool>;
+pub type DbPool = SqlitePool;
+pub type Extension = AxumExtension<DbPool>;
 
-pub fn init_pool(database_url: &str) -> Result<Pool, sqlx::Error> {
-    SqlitePoolOptions::new()
+/// Create a new connection pool for the SQLite database at the given url.
+///
+/// During initialisation, the migrations are applied to ensure that the app
+/// is always running against an up to date schema.
+pub async fn init(database_url: &str) -> Result<DbPool, sqlx::Error> {
+    let db = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect_lazy(database_url)
+        .connect(database_url)
+        .await?;
+
+    // Validate the database structure +/- apply any new changes.
+    sqlx::migrate!().run(&db).await?;
+
+    Ok(db)
 }
 
+/// Given an email address, return the associated user information.
 pub async fn get_user_by_email(
     user: &RegisterUser,
-    pool: &Pool,
-) -> anyhow::Result<Option<UserWithLocationsModel>> {
+    db: &DbPool,
+) -> Result<Option<UserWithLocations>> {
     let user_locations = sqlx::query_as!(
         UserWithLocationModel,
         r#"
@@ -27,12 +39,12 @@ pub async fn get_user_by_email(
               users.user_id,
               users.email,
               users.alert_threshold as "alert_threshold: types::AlertLevel",
-              users.last_alerted_at as "last_alerted_at: chrono::DateTime<chrono::Utc>",
-              locations.location_id as "location_id: types::Location",
+              users.last_alerted_at as "last_alerted_at: DateTimeUtc",
+              locations.location_id as "location_id: u32",
               locations.name,
               locations.weather_description,
-              locations.cloud_cover,
-              locations.updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+              locations.cloud_cover as "cloud_cover: u8",
+              locations.updated_at as "updated_at: DateTimeUtc"
             FROM 
               users, locations, user_locations
             WHERE
@@ -44,52 +56,63 @@ pub async fn get_user_by_email(
         "#,
         user.email
     )
-    .fetch_all(pool)
+    .fetch_all(db)
     .await?;
 
     if !user_locations.is_empty() {
-        Ok(Some(UserWithLocationsModel::one_from_rows(user_locations)))
+        Ok(Some(UserWithLocations::one_from_rows(user_locations)))
     } else {
         Ok(None)
     }
 }
 
 #[derive(Serialize)]
-pub struct LocationNameModel {
-    pub location_id: i64,
+pub struct Location {
+    pub location_id: u32,
+    pub name: String,
+    pub weather_description: String,
+    pub cloud_cover: u8,
+    pub updated_at: DateTimeUtc,
+}
+
+#[derive(Serialize)]
+pub struct LocationName {
+    pub location_id: u32,
     pub name: String,
 }
 
+/// Return a maximum of 5 locations whose name starts with `search_str`.
+///
+/// The locations are sorted alphabetically.
 pub async fn get_locations(
-    search_str: &types::SanitisedLikeString,
-    pool: &Pool,
-) -> anyhow::Result<Vec<LocationNameModel>> {
+    search_str: &types::SanitisedString,
+    db: &DbPool,
+) -> Result<Vec<LocationName>> {
     let locations = sqlx::query_as!(
-        LocationNameModel,
+        LocationName,
         r#"
             SELECT 
-              location_id, name
+              location_id as "location_id: u32", name
             FROM 
               locations
             WHERE 
               name LIKE ? || '%'
             ORDER BY 
-              name DESC
+              name DESC, location_id ASC
             LIMIT 
               5
         "#,
         search_str
     )
-    .fetch_all(pool)
+    .fetch_all(db)
     .await?;
     Ok(locations)
 }
 
-pub async fn set_user_verified(
-    user_id: &str,
-    email: &str,
-    pool: &Pool,
-) -> anyhow::Result<Option<String>> {
+/// Mark the user with the given identifiers as verified.
+///
+/// The successful value is `Some(user_id)` if the user was found and updated, otherwise `None` not found.
+pub async fn set_user_verified(user_id: &str, email: &str, db: &DbPool) -> Result<Option<String>> {
     let user_id = sqlx::query_scalar!(
         "
             UPDATE 
@@ -104,17 +127,16 @@ pub async fn set_user_verified(
         user_id,
         email
     )
-    .fetch_optional(pool)
+    .fetch_optional(db)
     .await?;
 
     Ok(user_id)
 }
 
-pub async fn delete_user(
-    user_id: &str,
-    email: &str,
-    pool: &Pool,
-) -> anyhow::Result<Option<String>> {
+/// Permanently remove the user with the given identifiers from the database.
+///
+/// The successful value is `Some(user_id)` if a user was found and deleted, otherwise it is `None`.
+pub async fn delete_user(user_id: &str, email: &str, db: &DbPool) -> Result<Option<String>> {
     let user_id = sqlx::query_scalar!(
         "
             DELETE FROM 
@@ -127,7 +149,7 @@ pub async fn delete_user(
         user_id,
         email
     )
-    .fetch_optional(pool)
+    .fetch_optional(db)
     .await?;
 
     Ok(user_id)
@@ -137,14 +159,13 @@ pub async fn delete_user(
 pub struct RegisterUser {
     pub email: String,
     pub alert_threshold: types::AlertLevel,
-    pub locations: Vec<types::Location>,
+    pub locations: Vec<u32>,
 }
 
-pub async fn insert_user(
-    user: &RegisterUser,
-    pool: &Pool,
-) -> anyhow::Result<UserWithLocationsModel> {
-    let mut tx = pool.begin().await?;
+/// Create a new user record in the database, including associated locations.
+pub async fn insert_user(user: &RegisterUser, db: &DbPool) -> Result<UserWithLocations> {
+    let mut tx = db.begin().await?;
+
     let user_id = sqlx::query_scalar!(
         "
             INSERT INTO users 
@@ -182,12 +203,12 @@ pub async fn insert_user(
               users.user_id,
               users.email,
               users.alert_threshold as "alert_threshold: types::AlertLevel",
-              users.last_alerted_at as "last_alerted_at: chrono::DateTime<chrono::Utc>",
-              locations.location_id as "location_id: types::Location",
+              users.last_alerted_at as "last_alerted_at: DateTimeUtc",
+              locations.location_id as "location_id: u32",
               locations.name,
               locations.weather_description,
-              locations.cloud_cover,
-              locations.updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+              locations.cloud_cover as "cloud_cover: u8",
+              locations.updated_at as "updated_at: DateTimeUtc"
             FROM 
               users, locations, user_locations
             WHERE
@@ -202,7 +223,7 @@ pub async fn insert_user(
     .fetch_all(&mut tx)
     .await?;
 
-    let user = UserWithLocationsModel::one_from_rows(user_locations);
+    let user = UserWithLocations::one_from_rows(user_locations);
 
     tx.commit().await?;
 
@@ -212,90 +233,83 @@ pub async fn insert_user(
 #[derive(Debug)]
 pub struct AlertLevelModel {
     pub alert_level: types::AlertLevel,
-    pub previous_alert_level: types::AlertLevel,
-    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: DateTimeUtc,
 }
 
-pub async fn get_alert_level(pool: &Pool) -> anyhow::Result<AlertLevelModel> {
+/// Retrieve the stored alert level from the database.
+pub async fn get_alert_level(db: &DbPool) -> Result<AlertLevelModel> {
     let alert_level = sqlx::query_as!(
         AlertLevelModel,
         r#"
             SELECT
               alert_level as "alert_level: types::AlertLevel",
-              previous_alert_level as "previous_alert_level: types::AlertLevel",
-              updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+              updated_at as "updated_at: DateTimeUtc"
             FROM
               alert_level
             WHERE
               alert_level_id = 1
         "#
     )
-    .fetch_one(pool)
+    .fetch_one(db)
     .await?;
 
     Ok(alert_level)
 }
 
+/// Update the existing alert level stored in the database with a new alert level.
 pub async fn update_alert_level(
-    new_alert_level: &types::CurrentStatus,
-    previous_alert_level: &AlertLevelModel,
-    pool: &Pool,
-) -> anyhow::Result<()> {
+    new_alert_level: &apis::aurora_watch::CurrentAlertLevel,
+    db: &DbPool,
+) -> Result<()> {
     sqlx::query!(
         "
             UPDATE
               alert_level
             SET
               alert_level = ?,
-              previous_alert_level = ?,
               updated_at = ?
             WHERE
               alert_level_id = 1
         ",
-        new_alert_level.site_status.alert_level,
-        previous_alert_level.alert_level,
-        new_alert_level.updated_at.datetime.value
+        new_alert_level.level,
+        new_alert_level.updated_at
     )
-    .execute(pool)
+    .execute(db)
     .await?;
 
     Ok(())
 }
 
 #[derive(Debug, Serialize, Clone)]
-pub struct LocationModel {
-    pub location_id: types::Location,
-    pub name: String,
-    pub weather_description: String,
-    pub cloud_cover: i64,
-    pub updated_at: chrono::DateTime<chrono::Utc>,
+pub struct LocationUpdatedAt {
+    pub location_id: u32,
+    pub updated_at: DateTimeUtc,
 }
 
-pub async fn get_unique_user_locations(pool: &Pool) -> anyhow::Result<Vec<LocationModel>> {
+/// Retrieve a set of all locations which are associated with at least one user.
+pub async fn get_unique_user_locations(db: &DbPool) -> Result<Vec<LocationUpdatedAt>> {
     let locations = sqlx::query_as!(
-        LocationModel,
+        LocationUpdatedAt,
         r#"
             SELECT DISTINCT
-              locations.location_id as "location_id: types::Location",
-              locations.name,
-              locations.weather_description,
-              locations.cloud_cover,
-              locations.updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+              locations.location_id as "location_id: u32",
+              locations.updated_at as "updated_at: DateTimeUtc"
             FROM
               user_locations INNER JOIN locations USING (location_id)
         "#
     )
-    .fetch_all(pool)
+    .fetch_all(db)
     .await?;
 
     Ok(locations)
 }
 
+/// Update the weather report at the given location.
 pub async fn update_weather(
-    weather: apis::open_weather::CurrentWeather,
-    location: types::Location,
-    pool: &Pool,
-) -> anyhow::Result<()> {
+    weather: apis::open_weather::Weather,
+    location_id: u32,
+    db: &DbPool,
+) -> Result<()> {
     sqlx::query!(
         "
             UPDATE
@@ -306,17 +320,18 @@ pub async fn update_weather(
             WHERE
               location_id = ?
         ",
-        weather.weather[0].description,
-        weather.clouds.all,
-        location
+        weather.description,
+        weather.cloud_cover,
+        location_id
     )
-    .execute(pool)
+    .execute(db)
     .await?;
 
     Ok(())
 }
 
-pub async fn update_user_last_alerted_at(user_id: &str, pool: &Pool) -> anyhow::Result<()> {
+/// Set the `last_updated_at` field for the given user to now.
+pub async fn update_user_last_alerted_at(user_id: &str, db: &DbPool) -> Result<()> {
     let now = chrono::Utc::now();
     sqlx::query!(
         "
@@ -330,26 +345,26 @@ pub async fn update_user_last_alerted_at(user_id: &str, pool: &Pool) -> anyhow::
         now,
         user_id
     )
-    .execute(pool)
+    .execute(db)
     .await?;
 
     Ok(())
 }
 
-#[derive(Debug, Serialize)]
-pub struct UserWithLocationsModel {
+#[derive(Serialize)]
+pub struct UserWithLocations {
     pub user_id: String,
     pub email: String,
     pub alert_threshold: types::AlertLevel,
-    pub last_alerted_at: Option<chrono::DateTime<chrono::Utc>>,
-    pub locations: Vec<LocationModel>,
+    pub last_alerted_at: Option<DateTimeUtc>,
+    pub locations: Vec<Location>,
 }
 
-impl UserWithLocationsModel {
+impl UserWithLocations {
     fn one_from_rows(user_rows: Vec<UserWithLocationModel>) -> Self {
         let mut locations = vec![];
         for user_row in &user_rows {
-            let location = LocationModel {
+            let location = Location {
                 location_id: user_row.location_id,
                 name: user_row.name.clone(),
                 weather_description: user_row.weather_description.clone(),
@@ -360,7 +375,7 @@ impl UserWithLocationsModel {
         }
         let row = &user_rows[0];
 
-        UserWithLocationsModel {
+        UserWithLocations {
             user_id: row.user_id.clone(),
             email: row.email.clone(),
             alert_threshold: row.alert_threshold.clone(),
@@ -372,16 +387,14 @@ impl UserWithLocationsModel {
     fn many_from_rows(users: Vec<UserWithLocationModel>) -> Vec<Self> {
         let mut user_map = HashMap::new();
         for user in &users {
-            let user_entry = user_map
-                .entry(&user.user_id)
-                .or_insert(UserWithLocationsModel {
-                    user_id: user.user_id.clone(),
-                    email: user.email.clone(),
-                    alert_threshold: user.alert_threshold.clone(),
-                    last_alerted_at: user.last_alerted_at,
-                    locations: vec![],
-                });
-            let location = LocationModel {
+            let user_entry = user_map.entry(&user.user_id).or_insert(UserWithLocations {
+                user_id: user.user_id.clone(),
+                email: user.email.clone(),
+                alert_threshold: user.alert_threshold.clone(),
+                last_alerted_at: user.last_alerted_at,
+                locations: vec![],
+            });
+            let location = Location {
                 location_id: user.location_id,
                 name: user.name.clone(),
                 weather_description: user.weather_description.clone(),
@@ -401,15 +414,16 @@ struct UserWithLocationModel {
     user_id: String,
     email: String,
     alert_threshold: types::AlertLevel,
-    last_alerted_at: Option<chrono::DateTime<chrono::Utc>>,
-    location_id: types::Location,
+    last_alerted_at: Option<DateTimeUtc>,
+    location_id: u32,
     name: String,
     weather_description: String,
-    cloud_cover: i64,
-    updated_at: chrono::DateTime<chrono::Utc>,
+    cloud_cover: u8,
+    updated_at: DateTimeUtc,
 }
 
-pub async fn get_verified_users(pool: &Pool) -> anyhow::Result<Vec<UserWithLocationsModel>> {
+/// Return a list of all verified users.
+pub async fn get_verified_users(db: &DbPool) -> Result<Vec<UserWithLocations>> {
     let users = sqlx::query_as!(
         UserWithLocationModel,
         r#"
@@ -417,12 +431,12 @@ pub async fn get_verified_users(pool: &Pool) -> anyhow::Result<Vec<UserWithLocat
               users.user_id,
               users.email,
               users.alert_threshold as "alert_threshold: types:: AlertLevel",
-              users.last_alerted_at as "last_alerted_at: chrono::DateTime<chrono::Utc>",
-              locations.location_id as "location_id: types::Location",
+              users.last_alerted_at as "last_alerted_at: DateTimeUtc",
+              locations.location_id as "location_id: u32",
               locations.name,
               locations.weather_description,
-              locations.cloud_cover,
-              locations.updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+              locations.cloud_cover as "cloud_cover: u8",
+              locations.updated_at as "updated_at: DateTimeUtc"
             FROM
               users, locations, user_locations
             WHERE 
@@ -433,15 +447,16 @@ pub async fn get_verified_users(pool: &Pool) -> anyhow::Result<Vec<UserWithLocat
               users.verified = 1
         "#
     )
-    .fetch_all(pool)
+    .fetch_all(db)
     .await?;
 
-    let users = UserWithLocationsModel::many_from_rows(users);
+    let users = UserWithLocations::many_from_rows(users);
 
     Ok(users)
 }
 
-pub async fn delete_unverified_users(pool: &Pool) -> anyhow::Result<u64> {
+/// Delete all unverified users from the database, returning a count of how many were deleted if successful.
+pub async fn delete_unverified_users(db: &DbPool) -> Result<u64> {
     let deleted_users_count = sqlx::query!(
         r#"
             DELETE FROM 
@@ -450,18 +465,19 @@ pub async fn delete_unverified_users(pool: &Pool) -> anyhow::Result<u64> {
               NOT verified
         "#,
     )
-    .execute(pool)
+    .execute(db)
     .await?
     .rows_affected();
 
     Ok(deleted_users_count)
 }
 
+/// Store the latest aurora activity data.
 pub async fn update_aurora_activity(
-    activity: crate::apis::aurora_watch::ActivityData,
-    pool: &Pool,
-) -> anyhow::Result<()> {
-    let mut tx = pool.begin().await?;
+    activity: super::apis::aurora_watch::ActivityData,
+    db: &DbPool,
+) -> Result<()> {
+    let mut tx = db.begin().await?;
     let acts = activity.activities;
     #[rustfmt::skip]
     sqlx::query!(
@@ -482,6 +498,7 @@ pub async fn update_aurora_activity(
               (?, ?), (?, ?),  -- 22
               (?, ?), (?, ?)   -- 24
         ",
+        // eugh!
         acts[0].datetime,  acts[0].value,  acts[1].datetime,  acts[1].value,
         acts[2].datetime,  acts[2].value,  acts[3].datetime,  acts[3].value,
         acts[4].datetime,  acts[4].value,  acts[5].datetime,  acts[5].value,
@@ -517,15 +534,17 @@ pub async fn update_aurora_activity(
     Ok(())
 }
 
+/// Retrieve the activity data for the 24 hours ending at `end`.
 pub async fn get_activity_data(
-    end: chrono::DateTime<chrono::Utc>,
-    pool: &Pool,
-) -> anyhow::Result<crate::apis::aurora_watch::ActivityData> {
-    let mut tx = pool.begin().await?;
+    end: &DateTimeUtc,
+    db: &DbPool,
+) -> Result<super::apis::aurora_watch::ActivityData> {
+    let mut tx = db.begin().await?;
+
     let updated_at = sqlx::query_scalar!(
         r#"
             SELECT 
-              updated_at as "updated_at: chrono::DateTime<chrono::Utc>"
+              updated_at as "updated_at: DateTimeUtc"
             FROM 
               activity_data_meta
             WHERE 
@@ -535,7 +554,7 @@ pub async fn get_activity_data(
     .fetch_one(&mut tx)
     .await?;
 
-    let activities = sqlx::query_as::<_, crate::apis::aurora_watch::ActivityDataPoint>(
+    let activities = sqlx::query_as::<_, super::apis::aurora_watch::ActivityDataPoint>(
         r#"
             WITH RECURSIVE datetimes(datetime) AS (
               VALUES(?)
@@ -562,8 +581,9 @@ pub async fn get_activity_data(
 
     tx.commit().await?;
 
-    Ok(crate::apis::aurora_watch::ActivityData {
+    Ok(apis::aurora_watch::ActivityData {
         updated_at,
+        // Safe to unwrap because we have used a CTE to ensure we always get 24 rows.
         activities: activities.try_into().unwrap(),
     })
 }

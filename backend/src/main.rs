@@ -1,139 +1,59 @@
-mod apis;
-mod config;
-mod db;
-mod errors;
-mod helpers;
-mod mail;
-mod routes;
-mod tasks;
-mod templates;
-mod types;
+use anyhow::Context;
+use aurora_alert_backend::{config, db, email, serve, tasks, templates};
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-use std::error::Error;
-
-use actix_cors::Cors;
-use actix_web::{error, middleware, rt as actix_rt, web, App, HttpResponse, HttpServer};
-use once_cell::sync::Lazy;
-
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // initialise our global config, database pool and template engine structs
-    pub static CONFIG: Lazy<config::Config> = Lazy::new(|| match config::Config::new() {
-        Ok(config) => config,
-        Err(e) => {
-            eprintln!("Error loading config: {}", e);
-            std::process::exit(1);
-        }
-    });
+    // A reasonable amount of set up is required for running the application. Specifically, we need to
+    // carry out the following steps:
+    //     // Steps 1-3 need to be carried out in this order
+    //     1. Load the environement variables
+    //     2. Initialise logging
+    //     3. Parse the rest of the application configuration from the environment
+    //     // Steps 4 - 6 can be carried out in any order
+    //     4. Initialise the database pool
+    //     5. Initialise the template engine
+    //     6. Initialise the the email engine
+    //     // Starting off the background tasks comes after app configuration and before the app gets served
+    //     7. Commence tasks
+    //     // The final step
+    //     8. Build and serve the application
+    //
+    // If any of steps 1 - 6 fail, then the application will exit with an error message.
 
-    // forces initialisation of the config, loading the environment variables to set up logging
-    let _ = &*CONFIG;
-    env_logger::init();
+    // Steps 1 + 2 - Load the environment variables and initialise logging
+    dotenv::from_filename("./backend/.env").ok();
+    tracing_subscriber::registry()
+        .with(EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| {
+                eprintln!("warning - RUST_LOG environment variable not found; setting default log level to 'debug'");
+                "debug".into()
+            }),
+        ))
+        .with(fmt::layer())
+        .init();
 
-    pub static POOL: Lazy<db::Pool> = Lazy::new(|| {
-        let pool = match db::init_pool(&CONFIG.database_url) {
-            Ok(pool) => pool,
-            Err(e) => {
-                log::warn!("Error initialising database connection pool: {}", e);
-                std::process::exit(1);
-            }
-        };
-        pool
-    });
+    // Step 3 - Parse the application configuration from the environment
+    let config = config::Config::init()?;
 
-    pub static TEMPLATES: Lazy<templates::Tera> = Lazy::new(|| {
-        let template_engine = match templates::build_template_engine(&CONFIG.templates_dir) {
-            Ok(eng) => eng,
-            Err(e) => {
-                log::warn!("Error compiling templates: {}", e);
-                std::process::exit(1);
-            }
-        };
-        template_engine
-    });
+    // Step 4 - Initialise the database pool
+    let db = db::init(&config.database_url)
+        .await
+        .context("could not connect to the database")?;
 
-    pub static MAILER: Lazy<mail::Transport> =
-        Lazy::new(
-            || match mail::build_mailer(&CONFIG.email_username, &CONFIG.email_password) {
-                Ok(mailer) => mailer,
-                Err(e) => {
-                    eprintln!("Error building mailer: {}", e);
-                    std::process::exit(1);
-                }
-            },
-        );
+    // Step 5 - Initialise the template engine
+    let template_engine =
+        templates::init(&config.templates_dir).context("could not create the template engine")?;
 
-    let pool = &*POOL;
-    let template_engine = &*TEMPLATES;
-    let mailer = &*MAILER;
+    // Step 6 - Initialise the the email engine
+    let email_transport = email::init(&config.email_username, &config.email_password)
+        .context("could not create the email transport")?;
 
-    // start the never-ending alert task, which regularly checks for the latest aurora status and sends out
-    // email alerts as necessary
-    actix_rt::spawn(tasks::alert_task(pool, template_engine, mailer));
+    // Step 7 - Commence long-running tasks
+    tasks::init(&db, &template_engine, &email_transport, &config);
 
-    // start the never-ending db maintenance task which deletes all unverified users every midnight
-    actix_rt::spawn(tasks::clear_unverified_users_task(pool));
-
-    // start the never-ending activity data update task
-    actix_rt::spawn(tasks::update_activity_data_task(pool));
-
-    HttpServer::new(move || {
-        App::new()
-            // middlewares
-            .wrap(middleware::Logger::default())
-            // .wrap(Cors::default().allowed_origin("http://localhost"))
-            .wrap(Cors::permissive())
-            // error handlers
-            .app_data(web::QueryConfig::default().error_handler(|err, _req| {
-                error::InternalError::from_response(
-                    err.source()
-                        .map(|e| e.to_string())
-                        .unwrap_or_else(|| String::from("")),
-                    HttpResponse::BadRequest().json(errors::JsonErrorResponse {
-                        error: String::from("Error parsing query parameters"),
-                        context: err.to_string(),
-                    }),
-                )
-                .into()
-            }))
-            .app_data(web::JsonConfig::default().error_handler(|err, _req| {
-                error::InternalError::from_response(
-                    err.source()
-                        .map(|e| e.to_string())
-                        .unwrap_or_else(|| String::from("")),
-                    HttpResponse::BadRequest().json(errors::JsonErrorResponse {
-                        error: String::from("Error parsing JSON data"),
-                        context: err.to_string(),
-                    }),
-                )
-                .into()
-            }))
-            .app_data(web::PathConfig::default().error_handler(|err, _req| {
-                error::InternalError::from_response(
-                    err.source()
-                        .map(|e| e.to_string())
-                        .unwrap_or_else(|| String::from("")),
-                    HttpResponse::BadRequest().json(errors::JsonErrorResponse {
-                        error: String::from("Error parsing path parameters"),
-                        context: err.to_string(),
-                    }),
-                )
-                .into()
-            }))
-            // application state
-            .app_data(web::Data::new(pool.clone()))
-            .app_data(web::Data::new(template_engine.clone()))
-            .app_data(web::Data::new(mailer.clone()))
-            // routes
-            .service(routes::verify)
-            .service(routes::register)
-            .service(routes::unsubscribe)
-            .service(routes::locations)
-            .service(routes::activity)
-    })
-    .bind(("0.0.0.0", 9090))?
-    .run()
-    .await?;
+    // Step 8 - Build and serve the application
+    serve(config, db, template_engine, email_transport).await?;
 
     Ok(())
 }

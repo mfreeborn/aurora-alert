@@ -1,6 +1,7 @@
 use anyhow::{self, Context};
 use dotenv::var;
 
+#[derive(Debug, Clone)]
 pub struct Config {
     pub database_url: String,
     pub templates_dir: String,
@@ -10,8 +11,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new() -> anyhow::Result<Self> {
-        dotenv::from_filename("./backend/.env").ok();
+    pub fn init() -> anyhow::Result<Self> {
         let err_context = "is a required variable";
 
         // necessary for composing DATABASE_URL

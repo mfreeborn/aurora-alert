@@ -1,13 +1,12 @@
-use actix_web::web;
+use crate::Result;
+use axum::Extension as AxumExtension;
 use derive_more::Display;
 pub use tera::{Context, Tera};
 
-use crate::errors;
+pub type TemplateEngine = Tera;
+pub type Extension = AxumExtension<TemplateEngine>;
 
-pub type Engine = Tera;
-pub type Extractor = web::Data<Engine>;
-
-pub fn build_template_engine(templates_dir: &str) -> Result<Engine, tera::Error> {
+pub fn init(templates_dir: &str) -> Result<TemplateEngine, tera::Error> {
     // instantiating Tera this way ensures that we can guarantee all the templates are
     // loaded succesfully as soon as the app starts
     let mut engine = Tera::default();
@@ -35,6 +34,8 @@ pub enum Template {
 }
 
 impl Template {
+    /// Compile time verification that, during module initialisation, all templates are added to the
+    /// template engine.
     const fn all_variants() -> [Self; Self::__COUNT as usize] {
         // Beware: parent templates (i.e. base.html) must appear before child templates
         [
@@ -45,15 +46,7 @@ impl Template {
         ]
     }
 
-    pub fn render(
-        &self,
-        context: &Context,
-        template_engine: &Engine,
-    ) -> Result<String, errors::ApiError> {
-        template_engine
-            .render(&self.to_string(), context)
-            .map_err(|e| errors::ApiError::Template {
-                context: format!("Error rendering '{}' template: {}", self, e),
-            })
+    pub fn render(&self, context: &Context, template_engine: &TemplateEngine) -> Result<String> {
+        Ok(template_engine.render(&self.to_string(), context)?)
     }
 }
