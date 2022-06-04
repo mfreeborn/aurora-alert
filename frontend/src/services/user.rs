@@ -2,9 +2,9 @@ use serde::de::DeserializeOwned;
 
 use crate::error::Error;
 use crate::requests;
-use crate::types::user::UserRegisterPostBody;
+use crate::types::user::UserRegisterBody;
 
-pub async fn register<T>(user_info: UserRegisterPostBody) -> Result<T, Error>
+pub async fn register<T>(user_info: UserRegisterBody) -> Result<T, Error>
 where
     T: DeserializeOwned + std::fmt::Debug + 'static,
 {

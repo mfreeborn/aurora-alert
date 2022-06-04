@@ -37,7 +37,7 @@ impl ActivityData {
     fn from_response(resp: ActivityDataResponse) -> Self {
         ActivityData {
             updated_at: resp.updated_at,
-            // this unwrap won't fail because we already checked that 24 elements are present
+            // This unwrap won't fail because we already checked that 24 elements are present.
             activities: resp.activities.try_into().unwrap(),
         }
     }
@@ -114,7 +114,7 @@ impl ActivityData {
 }
 
 pub async fn get_activity_data(end: DateTimeUtc) -> Result<ActivityData, Error> {
-    let params = format!("?end={end}");
+    let params = format!("?end={end:?}");
     let data = requests::get::<ActivityDataResponse>(format!("/activity{params}")).await?;
 
     Ok(ActivityData::from_response(data))

@@ -50,6 +50,7 @@ struct ActivityQuery {
 
 #[derive(Serialize)]
 struct ActivityBody {
+    #[serde(flatten)]
     activity_data: aurora_watch::ActivityData,
 }
 

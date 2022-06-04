@@ -18,19 +18,14 @@ pub struct UserRegisterInfo {
     pub locations: std::collections::HashMap<String, i64>,
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq)]
-pub struct UserSubscribeWrapper {
-    pub payload: String,
-}
-
-#[derive(Debug, Serialize, Clone)]
-pub struct UserRegisterPostBody {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserRegisterBody {
     pub email: String,
     pub alert_threshold: String,
     pub locations: Vec<i64>,
 }
 
-impl UserRegisterPostBody {
+impl UserRegisterBody {
     pub fn is_valid(&self) -> bool {
         !self.email.is_empty() && !self.locations.is_empty()
     }

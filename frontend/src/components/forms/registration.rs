@@ -9,7 +9,7 @@ use super::Form;
 use crate::routes::LinkHome;
 use crate::services::locations::get_locations;
 use crate::services::user::register;
-use crate::types::user::{UserRegisterPostBody, UserSubscribeWrapper};
+use crate::types::user::UserRegisterBody;
 
 #[function_component(RegistrationForm)]
 pub fn registration_form() -> Html {
@@ -17,7 +17,7 @@ pub fn registration_form() -> Html {
     let alert_threshold_handler = use_state(|| "yellow".to_string());
     let locations_handler = use_state(HashMap::<String, i64>::new);
 
-    let registration_info = UserRegisterPostBody {
+    let registration_info = UserRegisterBody {
         email: email_handler.deref().clone(),
         alert_threshold: alert_threshold_handler.deref().clone(),
         locations: locations_handler
@@ -29,7 +29,7 @@ pub fn registration_form() -> Html {
 
     let user_register = {
         let registration_info = registration_info.clone();
-        use_async(async move { register::<UserSubscribeWrapper>(registration_info).await })
+        use_async(async move { register::<UserRegisterBody>(registration_info).await })
     };
 
     let onsubmit = {

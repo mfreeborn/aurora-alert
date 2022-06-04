@@ -52,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
     // Step 7 - Commence long-running tasks
     tasks::init(&db, &template_engine, &email_transport, &config);
 
-    // Step 8 - Build and serve the application
+    // Step 8 - Build and serve the applicatio
     serve(config, db, template_engine, email_transport).await?;
 
     Ok(())
