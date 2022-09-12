@@ -1,2 +1,6 @@
-[serve]
-port = 8080
+[build]
+target = "index.html"
+dist = "../dist"
+
+[[proxy]]
+backend = "http://0.0.0.0:8081/api/"

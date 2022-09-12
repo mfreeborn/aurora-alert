@@ -1,0 +1,27 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+anyhow = "1.0.56"
+axum = { version = "0.6.0-rc.1", features = ["macros"] }
+axum-extra = { version = "0.4.0-rc.1", features = ["spa"] }
+chrono = { version = "0.4.19", features = [ "serde" ] }
+config = { version = "0.13.2", default-features = false, features = ["toml"] }
+derive_more = { version = "0.99.17", default_features = false, features = [ "display", "error" ] }
+hyper = "0.14.20"
+lettre = { version = "0.10.1", features = [ "tokio1-native-tls" ] }
+quick-xml = { version = "0.22", features = [ "serialize" ] }
+reqwest = { version = "0.11", features = [ "json" ] }
+serde = { version = "1.0", features = [ "derive" ] }
+sqlx = {version = "0.6.1", features = [ "runtime-tokio-rustls" , "postgres", "chrono", "uuid" ] }
+tera = { version = "1.15.0", default-features = false }
+thiserror =  "1.0"
+tokio = { version = "1", features = ["macros", "rt", "time"] }
+tower = "0.4"
+tower-http = { version = "0.3", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["serde"] }

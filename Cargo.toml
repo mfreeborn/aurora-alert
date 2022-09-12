@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "frontend",
-    "backend",
+    "server",
 ]
 
 [profile.dev.package.sqlx-macros]

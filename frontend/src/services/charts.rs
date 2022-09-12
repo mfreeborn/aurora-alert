@@ -17,7 +17,7 @@ type DateTimeUtc = chrono::DateTime<chrono::Utc>;
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ActivityDataPoint {
-    pub datetime: DateTimeUtc,
+    pub timestamp: DateTimeUtc,
     pub value: NotNan<f32>,
 }
 
@@ -37,7 +37,7 @@ impl ActivityData {
     fn from_response(resp: ActivityDataResponse) -> Self {
         ActivityData {
             updated_at: resp.updated_at,
-            // This unwrap won't fail because we already checked that 24 elements are present.
+            // This unwrap won't fail because we already ensured that 24 elements are present on the server side.
             activities: resp.activities.try_into().unwrap(),
         }
     }
@@ -48,7 +48,7 @@ impl ActivityData {
         let trace = plotly::Bar::new(
             self.activities
                 .iter()
-                .map(|a| a.datetime.with_timezone(&chrono::Local).to_rfc3339())
+                .map(|a| a.timestamp.with_timezone(&chrono::Local).to_rfc3339())
                 .collect(),
             self.activities.iter().map(|a| a.value).collect(),
         )
@@ -115,7 +115,8 @@ impl ActivityData {
 
 pub async fn get_activity_data(end: DateTimeUtc) -> Result<ActivityData, Error> {
     let params = format!("?end={end:?}");
-    let data = requests::get::<ActivityDataResponse>(format!("/activity{params}")).await?;
+
+    let data = requests::get::<ActivityDataResponse>(format!("api/activity{params}")).await?;
 
     Ok(ActivityData::from_response(data))
 }

@@ -1,6 +1,0 @@
-[env]
-# absolute path to the workspace root, but BEWARE it has a leading and trailing '/'
-CARGO_WORKSPACE_DIRECTORY = { value = "", relative = true }
-
-[build]
-target = "x86_64-unknown-linux-gnu"

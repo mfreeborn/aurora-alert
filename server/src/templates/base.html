@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Aurora Alert</title>
+    <style>
+        /* -------------------------------------
+          GLOBAL RESETS
+        ------------------------------------- */
+
+        body {
+            background-color: #f6f6f6;
+            font-family: sans-serif;
+            -webkit-font-smoothing: antialiased;
+            font-size: 1rem;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid lightgrey;
+            border-collapse: collapse;
+            margin: 10px;
+            padding: 5px;
+            font-size: 0.875rem;
+        }
+
+        /* -------------------------------------
+          BODY & CONTAINER
+        ------------------------------------- */
+
+        .body {
+            background-color: #f6f6f6;
+            width: 100%;
+        }
+
+        .container {
+            display: block;
+            margin: 0 auto !important;
+            max-width: 800px;
+            padding: 10px;
+        }
+
+        .content {
+            box-sizing: border-box;
+            display: block;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        /* -------------------------------------
+          HEADER, FOOTER, MAIN
+      ------------------------------------- */
+        .main {
+            background: #ffffff;
+            border-radius: 3px;
+            width: 100%;
+        }
+
+        .wrapper {
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        .powered-by {
+            padding-bottom: 10px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #999999;
+            font-size: 0.75rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* -------------------------------------
+          TYPOGRAPHY
+        ------------------------------------- */
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: #000000;
+            font-family: sans-serif;
+            font-weight: 400;
+            line-height: 1.4;
+            margin: 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 300;
+            text-align: center;
+        }
+
+        p,
+        ul {
+            font-size: 0.875rem;
+            margin: 0;
+            margin-bottom: 15px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        hr {
+            border: 0;
+            border-bottom: 3px solid #f6f6f6;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="body">
+        <div class="container">
+            <div class="content">
+                <!-- START CENTERED WHITE CONTAINER -->
+                <div class="main">
+                    <!-- START MAIN CONTENT AREA -->
+                    <div class="wrapper">
+                        {% block content %}{% endblock content %}
+                    </div>
+                    <!-- END MAIN CONTENT AREA -->
+                </div>
+                <!-- END CENTERED WHITE CONTAINER -->
+
+                <!-- START FOOTER -->
+                <div class="footer">
+                    <p>
+                        {% block footer %}{% endblock footer %}
+                    </p>
+                    <p class="powered-by">
+                        Powered by <a href="http://aurora-alert.home">Aurora Alert</a>, <a
+                            href="https://aurorawatch.lancs.ac.uk/">AuroraWatch
+                            UK</a> and <a href="https://openweathermap.org/">OpenWeather</a>
+                    </p>
+                </div>
+                <!-- END FOOTER -->
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
