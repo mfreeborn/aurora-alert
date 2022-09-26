@@ -10,19 +10,24 @@ categories = ["gui", "wasm", "web-programming"]
 
 [dependencies]
 chrono = { version = "0.4", features = [ "serde", "wasmbind" ] }
+common = { path = "../common" }
 gloo-net = { version = "0.2.4", features = ["json", "http"] }
 js-sys = "0.3"
 log = "0.4"
-ordered-float = { version = "2", features = [ "serde" ] }
-plotly = { git = "https://github.com/igiagkiozis/plotly", branch = "dev", features = [ "wasm" ] }
-reqwest = { version = "0.11", features = [ "json" ] }
+plotly = { version = "0.8.1", features = [ "wasm" ] }
 serde = { version = "1", features = [ "derive" ] }
 serde_urlencoded = "0.7"
 thiserror = "1"
 wasm-bindgen = "0.2"
 wasm-logger = "0.2"
-web-sys = "0.3"
-wee_alloc = "0.4"
 yew = "0.19"
 yew-hooks = "0.1"
 yew-router = "0.16"
+ag-grid-rs = { path = "../../ag-grid-rs/ag-grid-rs" }
+
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "HtmlElement"
+]

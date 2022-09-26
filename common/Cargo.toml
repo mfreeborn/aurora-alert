@@ -1,0 +1,17 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+description = "Shared library for front and back end types."
+license = "MIT OR Apache-2.0"
+keywords = ["yew", "trunk"]
+categories = ["gui", "wasm", "web-programming"]
+
+[dependencies]
+chrono = { version = "0.4", features = [ "serde" ] }
+derive_more = { version = "0.99.17", default_features = false, features = [ "display", "error" ] }
+serde = { version = "1", features = [ "derive" ] }
+sqlx = { version = "0.6.1", features = [ "runtime-tokio-rustls" , "postgres", "chrono", "uuid" ], optional = true }
+
+[features]
+sql = ["sqlx"]

@@ -1,11 +1,11 @@
 use crate::apis;
+use crate::common::AlertLevel;
 use crate::configuration::Settings;
 use crate::db;
 use crate::db::DbPool;
 use crate::email::EmailClient;
 use crate::helpers;
 use crate::startup::{get_connection_pool, get_email_client};
-use crate::types;
 
 /// Send an email alert to all users where the alert criteria are met.
 async fn maybe_alert(
@@ -17,7 +17,7 @@ async fn maybe_alert(
     let live_alert_level = apis::aurora_watch::get_alert_level().await?;
 
     if (stored_alert_level.updated_at == live_alert_level.updated_at)
-        && (stored_alert_level.alert_level == types::AlertLevel::Green)
+        && (stored_alert_level.alert_level == AlertLevel::Green)
     {
         // The live alert level is the same as the stored alert level. If the alert
         // level is yellow or higher, we still need to check for alerts because the
@@ -31,7 +31,7 @@ async fn maybe_alert(
         db::update_alert_level(&live_alert_level, pool).await?;
     }
 
-    if live_alert_level.level >= types::AlertLevel::Yellow {
+    if live_alert_level.level >= AlertLevel::Yellow {
         // We are at yellow or above: update the weather reports if they are stale.
         let locations = db::get_unique_user_locations(pool).await?;
         let now = chrono::Utc::now();

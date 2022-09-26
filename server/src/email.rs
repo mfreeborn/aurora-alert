@@ -1,4 +1,3 @@
-use axum::Extension as AxumExtension;
 use lettre::{
     message::header, transport::smtp::authentication::Credentials, AsyncSmtpTransport,
     AsyncTransport, Message, Tokio1Executor,
@@ -6,14 +5,13 @@ use lettre::{
 use tera::Context;
 use tera::Tera;
 
+use crate::common::AlertLevel;
 use crate::configuration::EmailSettings;
 use crate::db;
 use crate::templates;
 use crate::templates::Template;
-use crate::types;
 
 pub type EmailTransport = AsyncSmtpTransport<Tokio1Executor>;
-pub type Extension = AxumExtension<EmailTransport>;
 
 /// Coalesce all possible errors in this module into one type.
 #[derive(Debug, thiserror::Error)]
@@ -50,7 +48,7 @@ impl AlertBuilder {
     pub fn add_context(
         self,
         user: &db::UserWithLocations,
-        alert_level: &types::AlertLevel,
+        alert_level: &AlertLevel,
     ) -> Result<RenderedEmailBuilder, anyhow::Error> {
         let mut context = Context::from_serialize(user)?;
         context.insert("alert_level", alert_level);
@@ -162,7 +160,8 @@ pub struct SendableEmail {
     email: Message,
 }
 
-/// Entry point for constructing an email which can be sent to the given address.
+/// Entry point for constructing an email which can be sent to the given
+/// address.
 #[derive(Clone, Debug)]
 pub struct EmailClient {
     pub mailer: EmailTransport,
@@ -198,7 +197,8 @@ impl EmailClient {
         VerifyUserBuilder::new(to_address, engine)
     }
 
-    /// Start constructing an email for a user who has tried to register an existing email address.
+    /// Start constructing an email for a user who has tried to register an
+    /// existing email address.
     pub fn new_user_already_registered(&self, to_address: &str) -> UserAlreadyRegisteredBuilder {
         let engine = self.template_engine.clone();
         UserAlreadyRegisteredBuilder::new(to_address, engine)

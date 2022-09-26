@@ -1,7 +1,7 @@
 use super::db;
-use super::types;
+use crate::common::AlertLevel;
 
-pub fn should_alert_user(user: &db::UserWithLocations, alert_level: &types::AlertLevel) -> bool {
+pub fn should_alert_user(user: &db::UserWithLocations, alert_level: &AlertLevel) -> bool {
     if user.alert_threshold <= *alert_level {
         let now = chrono::Utc::now();
         let two_hours_ago = now - chrono::Duration::hours(2);

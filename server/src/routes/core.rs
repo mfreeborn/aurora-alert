@@ -7,9 +7,10 @@ use chrono::Timelike;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::common::ActivityData;
 use crate::error::Error;
+use crate::startup::AppState;
 use crate::types::{DateTimeUtc, SanitisedString};
-use crate::{apis::aurora_watch, startup::AppState};
 use crate::{db, startup::DbState};
 
 pub fn router(app_state: AppState) -> Router<AppState> {
@@ -54,7 +55,7 @@ struct ActivityQuery {
 #[derive(Serialize)]
 struct ActivityBody {
     #[serde(flatten)]
-    activity_data: aurora_watch::ActivityData,
+    activity_data: ActivityData,
 }
 
 /// Return the hourly activity data for the 24 hours ending at the given `end`.

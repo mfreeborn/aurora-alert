@@ -1,7 +1,8 @@
 use chrono::TimeZone;
 use serde::{Deserialize, Serialize};
 
-use crate::types::{self, DateTimeUtc};
+use crate::common::{ActivityData, ActivityDataPoint, AlertLevel};
+use crate::types::DateTimeUtc;
 
 type Result<T> = std::result::Result<T, AuroraWatchError>;
 
@@ -31,15 +32,15 @@ impl std::convert::From<quick_xml::DeError> for AuroraWatchError {
     }
 }
 
-/// A container for 24 contiguous hours of activity data.
-#[derive(Debug, Serialize)]
-pub struct ActivityData {
-    pub activities: [ActivityDataPoint; 24],
-    pub updated_at: DateTimeUtc,
+pub trait ActivityDataExt
+where
+    Self: Sized,
+{
+    fn from_text(text: &str) -> Result<Self>;
 }
 
-impl ActivityData {
-    pub fn from_text(text: &str) -> Result<Self> {
+impl ActivityDataExt for ActivityData {
+    fn from_text(text: &str) -> Result<Self> {
         // Example text: https://aurorawatch.lancs.ac.uk/api/0.1/activity.txt
         let lines = text.lines();
         let (_station, rest) = parse_single_value(lines)?;
@@ -61,13 +62,6 @@ impl ActivityData {
             activities: activities.try_into().unwrap(),
         })
     }
-}
-
-/// The activity data for a single hour.
-#[derive(Debug, Serialize, sqlx::FromRow)]
-pub struct ActivityDataPoint {
-    pub timestamp: DateTimeUtc,
-    pub value: f32,
 }
 
 fn parse_single_value(mut lines: std::str::Lines) -> Result<(&str, std::str::Lines)> {
@@ -142,7 +136,7 @@ struct Updated {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct SiteStatus {
-    status_id: types::AlertLevel,
+    status_id: AlertLevel,
     site_id: String,
 }
 
@@ -156,7 +150,7 @@ struct CurrentStatus {
 /// The current alert level derived from the AuroraWatch API.
 #[derive(Debug, Deserialize)]
 pub struct CurrentAlertLevel {
-    pub level: types::AlertLevel,
+    pub level: AlertLevel,
     pub updated_at: DateTimeUtc,
     pub site_id: String,
 }

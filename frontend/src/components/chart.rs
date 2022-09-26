@@ -8,7 +8,8 @@ use yew_hooks::use_async;
 use yew_hooks::use_interval;
 
 use self::controls::Controls;
-use crate::services::charts::{self, ActivityData};
+use crate::common::ActivityData;
+use crate::services::charts::{self, ActivityDataExt};
 use crate::theme::ThemeMode;
 
 #[function_component(ActivityChart)]

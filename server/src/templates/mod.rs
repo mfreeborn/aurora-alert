@@ -1,13 +1,11 @@
-use axum::Extension as AxumExtension;
 use derive_more::Display;
 pub use tera::{Context, Tera};
 
 pub type TemplateEngine = Tera;
-pub type Extension = AxumExtension<TemplateEngine>;
 
 pub fn init(templates_dir: &str) -> Result<TemplateEngine, tera::Error> {
-    // instantiating Tera this way ensures that we can guarantee all the templates are
-    // loaded succesfully as soon as the app starts
+    // instantiating Tera this way ensures that we can guarantee all the templates
+    // are loaded succesfully as soon as the app starts
     let mut engine = Tera::default();
     for template in Template::all_variants() {
         let template_path = format!("{templates_dir}/{template}");
@@ -33,8 +31,8 @@ pub enum Template {
 }
 
 impl Template {
-    /// Compile time verification that, during module initialisation, all templates are added to the
-    /// template engine.
+    /// Compile time verification that, during module initialisation, all
+    /// templates are added to the template engine.
     const fn all_variants() -> [Self; Self::__COUNT as usize] {
         // Beware: parent templates (i.e. base.html) must appear before child templates
         [

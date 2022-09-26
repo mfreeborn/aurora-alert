@@ -1,16 +1,15 @@
 use std::collections::HashMap;
 
-use axum::extract::State as AxumState;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 use sqlx::PgPool;
 
 use crate::apis;
-use crate::apis::aurora_watch::{ActivityData, ActivityDataPoint};
-use crate::types::{self, DateTimeUtc};
+use crate::common::{ActivityData, ActivityDataPoint, AlertLevel};
+use crate::types::DateTimeUtc;
+use crate::types::SanitisedString;
 
 pub type DbPool = PgPool;
-pub type State = AxumState<DbPool>;
 
 /// Given an email address, return the associated user information.
 pub async fn get_user_by_email(
@@ -23,7 +22,7 @@ pub async fn get_user_by_email(
             SELECT
               users.user_id,
               users.email::TEXT as "email!",
-              users.alert_threshold as "alert_threshold: types::AlertLevel",
+              users.alert_threshold as "alert_threshold: AlertLevel",
               users.last_alerted_at as "last_alerted_at: DateTimeUtc",
               locations.location_id,
               locations.name::TEXT as "name!",
@@ -68,7 +67,7 @@ pub struct LocationName {
 ///
 /// The locations are sorted alphabetically.
 pub async fn get_locations(
-    search_str: &types::SanitisedString,
+    search_str: &SanitisedString,
     db: &DbPool,
 ) -> Result<Vec<LocationName>, anyhow::Error> {
     let locations = sqlx::query_as!(
@@ -94,7 +93,8 @@ pub async fn get_locations(
 
 /// Mark the user with the given identifiers as verified.
 ///
-/// The successful value is `Some(user_id)` if the user was found and updated, otherwise `None` not found.
+/// The successful value is `Some(user_id)` if the user was found and updated,
+/// otherwise `None` not found.
 pub async fn set_user_verified(
     user_id: &Uuid,
     email: &str,
@@ -122,7 +122,8 @@ pub async fn set_user_verified(
 
 /// Permanently remove the user with the given identifiers from the database.
 ///
-/// The successful value is `Some(user_id)` if a user was found and deleted, otherwise it is `None`.
+/// The successful value is `Some(user_id)` if a user was found and deleted,
+/// otherwise it is `None`.
 pub async fn delete_user(
     user_id: &Uuid,
     email: &str,
@@ -149,7 +150,7 @@ pub async fn delete_user(
 #[derive(Deserialize)]
 pub struct RegisterUser {
     pub email: String,
-    pub alert_threshold: types::AlertLevel,
+    pub alert_threshold: AlertLevel,
     pub locations: Vec<i32>,
 }
 
@@ -170,7 +171,7 @@ pub async fn insert_user(
               user_id
         "#,
         user.email,
-        user.alert_threshold as types::AlertLevel
+        user.alert_threshold as AlertLevel
     )
     .fetch_one(&mut tx)
     .await?;
@@ -196,7 +197,7 @@ pub async fn insert_user(
           SELECT
             users.user_id,
             users.email::TEXT as "email!",
-            users.alert_threshold as "alert_threshold: types::AlertLevel",
+            users.alert_threshold as "alert_threshold: AlertLevel",
             users.last_alerted_at as "last_alerted_at: DateTimeUtc",
             locations.location_id,
             locations.name::TEXT as "name!",
@@ -224,7 +225,7 @@ pub async fn insert_user(
 
 #[derive(Debug)]
 pub struct AlertLevelModel {
-    pub alert_level: types::AlertLevel,
+    pub alert_level: AlertLevel,
     pub updated_at: DateTimeUtc,
 }
 
@@ -234,7 +235,7 @@ pub async fn get_alert_level(pool: &DbPool) -> Result<AlertLevelModel, anyhow::E
         AlertLevelModel,
         r#"
             SELECT
-              alert_level as "alert_level: types::AlertLevel",
+              alert_level as "alert_level: AlertLevel",
               updated_at as "updated_at: DateTimeUtc"
             FROM
               alert_level
@@ -248,7 +249,8 @@ pub async fn get_alert_level(pool: &DbPool) -> Result<AlertLevelModel, anyhow::E
     Ok(alert_level)
 }
 
-/// Update the existing alert level stored in the database with a new alert level.
+/// Update the existing alert level stored in the database with a new alert
+/// level.
 pub async fn update_alert_level(
     new_alert_level: &apis::aurora_watch::CurrentAlertLevel,
     pool: &DbPool,
@@ -263,7 +265,7 @@ pub async fn update_alert_level(
             WHERE
               alert_level_id = 1
         ",
-        new_alert_level.level as types::AlertLevel,
+        new_alert_level.level as AlertLevel,
         new_alert_level.updated_at
     )
     .execute(pool)
@@ -352,7 +354,7 @@ pub async fn update_user_last_alerted_at(
 pub struct UserWithLocations {
     pub user_id: Uuid,
     pub email: String,
-    pub alert_threshold: types::AlertLevel,
+    pub alert_threshold: AlertLevel,
     pub last_alerted_at: Option<DateTimeUtc>,
     pub locations: Vec<Location>,
 }
@@ -410,7 +412,7 @@ impl UserWithLocations {
 struct UserWithLocationModel {
     user_id: Uuid,
     email: String,
-    alert_threshold: types::AlertLevel,
+    alert_threshold: AlertLevel,
     last_alerted_at: Option<DateTimeUtc>,
     location_id: i32,
     name: String,
@@ -427,7 +429,7 @@ pub async fn get_verified_users(pool: &DbPool) -> Result<Vec<UserWithLocations>,
             SELECT
               users.user_id,
               users.email::TEXT as "email!",
-              users.alert_threshold as "alert_threshold: types:: AlertLevel",
+              users.alert_threshold as "alert_threshold:  AlertLevel",
               users.last_alerted_at as "last_alerted_at: DateTimeUtc",
               locations.location_id,
               locations.name::TEXT as "name!",
@@ -450,7 +452,8 @@ pub async fn get_verified_users(pool: &DbPool) -> Result<Vec<UserWithLocations>,
     Ok(users)
 }
 
-/// Delete all unverified users from the database, returning a count of how many were deleted if successful.
+/// Delete all unverified users from the database, returning a count of how many
+/// were deleted if successful.
 pub async fn delete_unverified_users(pool: &DbPool) -> Result<u64, anyhow::Error> {
     let deleted_users_count = sqlx::query!(
         r#"
@@ -469,7 +472,7 @@ pub async fn delete_unverified_users(pool: &DbPool) -> Result<u64, anyhow::Error
 
 /// Store the latest aurora activity data.
 pub async fn update_aurora_activity(
-    activity: super::apis::aurora_watch::ActivityData,
+    activity: ActivityData,
     pool: &DbPool,
 ) -> Result<(), anyhow::Error> {
     let mut tx = pool.begin().await?;

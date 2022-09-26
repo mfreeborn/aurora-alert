@@ -1,4 +1,3 @@
-use ordered_float::NotNan;
 use plotly::{
     common::{Marker, Title},
     configuration::DisplayModeBar,
@@ -10,16 +9,11 @@ use plotly::{
 use serde::Deserialize;
 
 use super::requests;
+use crate::common::{ActivityData, ActivityDataPoint};
 use crate::error::Error;
 use crate::theme::{ThemeMode, AMBER, GREEN, RED, YELLOW};
 
 type DateTimeUtc = chrono::DateTime<chrono::Utc>;
-
-#[derive(Deserialize, Debug, Clone, PartialEq)]
-pub struct ActivityDataPoint {
-    pub timestamp: DateTimeUtc,
-    pub value: NotNan<f32>,
-}
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct ActivityDataResponse {
@@ -27,13 +21,12 @@ pub struct ActivityDataResponse {
     pub activities: Vec<ActivityDataPoint>,
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq)]
-pub struct ActivityData {
-    pub updated_at: DateTimeUtc,
-    pub activities: [ActivityDataPoint; 24],
+pub trait ActivityDataExt {
+    fn from_response(resp: ActivityDataResponse) -> Self;
+    fn to_plot(&self, theme_mode: ThemeMode) -> plotly::Plot;
 }
 
-impl ActivityData {
+impl ActivityDataExt for ActivityData {
     fn from_response(resp: ActivityDataResponse) -> Self {
         ActivityData {
             updated_at: resp.updated_at,
@@ -42,7 +35,7 @@ impl ActivityData {
         }
     }
 
-    pub fn to_plot(&self, theme_mode: ThemeMode) -> plotly::Plot {
+    fn to_plot(&self, theme_mode: ThemeMode) -> plotly::Plot {
         let mut plot = plotly::Plot::new();
 
         let trace = plotly::Bar::new(
@@ -57,11 +50,11 @@ impl ActivityData {
                 self.activities
                     .iter()
                     .map(|a| {
-                        if a.value < NotNan::new(50.).unwrap() {
+                        if a.value < 50. {
                             GREEN
-                        } else if a.value < NotNan::new(100.).unwrap() {
+                        } else if a.value < 100. {
                             YELLOW
-                        } else if a.value < NotNan::new(200.).unwrap() {
+                        } else if a.value < 200. {
                             AMBER
                         } else {
                             RED

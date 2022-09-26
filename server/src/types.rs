@@ -1,7 +1,6 @@
 use std::ops::Deref;
 
-use derive_more::Display;
-use serde::{de::Deserializer, Deserialize, Serialize};
+use serde::{de::Deserializer, Deserialize};
 
 pub type DateTimeUtc = chrono::DateTime<chrono::Utc>;
 
@@ -36,17 +35,4 @@ impl<'de> Deserialize<'de> for SanitisedString {
         let s: String = Deserialize::deserialize(deserializer)?;
         Ok(Self::new(&s))
     }
-}
-
-/// An enumeration of the four different aurora alert levels.
-#[derive(
-    Clone, Copy, Debug, Display, Serialize, Deserialize, PartialOrd, PartialEq, sqlx::Type,
-)]
-#[serde(rename_all = "lowercase")]
-#[sqlx(type_name = "alert_level_enum", rename_all = "lowercase")]
-pub enum AlertLevel {
-    Green,
-    Yellow,
-    Amber,
-    Red,
 }
