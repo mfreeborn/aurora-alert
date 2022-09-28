@@ -29,7 +29,7 @@ pub fn registration_form() -> Html {
 
     let user_register = {
         let registration_info = registration_info.clone();
-        use_async(async move { register::<UserRegisterBody>(registration_info).await })
+        use_async(async move { register(registration_info).await })
     };
 
     let onsubmit = {
@@ -67,7 +67,8 @@ pub fn registration_form() -> Html {
                     html! {
                         <>
                             {
-                                if let Some(_err) = &user_register.error {
+                                if let Some(err) = &user_register.error {
+                                    log::error!("Error in user_register callback: {}", err);
                                     html! {
                                         <div class="row">
                                             <div class="col">

@@ -58,7 +58,8 @@ impl ActivityDataExt for ActivityData {
 
         Ok(Self {
             updated_at,
-            // The api always returns 24 results. Missing entries have a value of nan, which we convert to 0.0
+            // The api always returns 24 results. Missing entries have a value of nan, which we
+            // convert to 0.0
             activities: activities.try_into().unwrap(),
         })
     }
@@ -97,7 +98,8 @@ fn parse_activity(line: &str) -> Result<ActivityDataPoint> {
         )
     })?;
 
-    // Helpfully convert nan to 0.0, so that it plays better with downstream data display.
+    // Helpfully convert nan to 0.0, so that it plays better with downstream data
+    // display.
     let value = value
         .parse::<f32>()
         .map(|val| if val.is_nan() { 0.0 } else { val })?;
@@ -116,8 +118,12 @@ fn parse_activities(lines: std::iter::Skip<std::str::Lines>) -> Result<Vec<Activ
 
 /// Retrieve the latest activity data from the AuroraWatch API.
 pub async fn get_activity_data() -> Result<ActivityData> {
+    let client = reqwest::ClientBuilder::new()
+        .use_rustls_tls()
+        .build()
+        .unwrap();
     let activity_data_url = "https://aurorawatch.lancs.ac.uk/api/0.1/activity.txt";
-    let response = reqwest::get(activity_data_url).await?.text().await?;
+    let response = client.get(activity_data_url).send().await?.text().await?;
     let activity_data = ActivityData::from_text(&response)?;
 
     Ok(activity_data)
@@ -168,7 +174,11 @@ impl From<CurrentStatus> for CurrentAlertLevel {
 /// Retrieve the current alert level from the AuroraWatch API.
 pub async fn get_alert_level() -> Result<CurrentAlertLevel> {
     let status_url = "https://aurorawatch-api.lancs.ac.uk/0.2/status/current-status.xml";
-    let xml_response = reqwest::get(status_url).await?.text().await?;
+    let client = reqwest::ClientBuilder::new()
+        .use_rustls_tls()
+        .build()
+        .unwrap();
+    let xml_response = client.get(status_url).send().await?.text().await?;
     let status: CurrentAlertLevel = quick_xml::de::from_str::<CurrentStatus>(&xml_response)?.into();
     Ok(status)
 }

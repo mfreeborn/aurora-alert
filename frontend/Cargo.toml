@@ -1,5 +1,5 @@
 [package]
-name = "aurora-alert-frontend"
+name = "frontend"
 version = "0.1.0"
 edition = "2021"
 description = "Front end web app for Aurora Alert"
@@ -23,7 +23,6 @@ wasm-logger = "0.2"
 yew = "0.19"
 yew-hooks = "0.1"
 yew-router = "0.16"
-ag-grid-rs = { path = "../../ag-grid-rs/ag-grid-rs" }
 
 
 [dependencies.web-sys]

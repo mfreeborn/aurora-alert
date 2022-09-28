@@ -3,7 +3,7 @@ use yew::prelude::*;
 use crate::hooks::use_query_params;
 use crate::routes::{LinkHome, RedirectInternalServerError, RedirectNotFound};
 use crate::services::user::unsubscribe;
-use crate::types::user::{UnsubscribeParams, UnsubscribeUserWrapper};
+use crate::types::user::UnsubscribeParams;
 
 #[function_component(Unsubscribe)]
 pub fn unsubscribe() -> Html {
@@ -17,7 +17,7 @@ pub fn unsubscribe() -> Html {
 
     let state = {
         yew_hooks::use_async_with_options(
-            async move { unsubscribe::<UnsubscribeUserWrapper>(params.user_id, params.email).await },
+            async move { unsubscribe(params.user_id, params.email).await },
             yew_hooks::UseAsyncOptions::enable_auto(),
         )
     };

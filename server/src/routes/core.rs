@@ -29,16 +29,19 @@ struct LocationsBody {
     locations: Vec<db::LocationName>,
 }
 
-/// Given a search string, return an alphabetical list of the locations which begin with said string.
+/// Given a search string, return an alphabetical list of the locations which
+/// begin with said string.
 ///
-/// If the search string is empty, then an empty list is returned, otherwise, up to a maximum of 5 locations
-/// will be returned.
+/// If the search string is empty, then an empty list is returned, otherwise, up
+/// to a maximum of 5 locations will be returned.
+#[tracing::instrument(name = "Fetch locations")]
 async fn locations(
     Query(LocationQuery { search_str }): Query<LocationQuery>,
     State(db): State<DbState>,
 ) -> Result<Json<LocationsBody>, Error> {
-    // Short circuit if the search string is blank. Alternatively, we could allow it to proceed, and that would
-    // mean we return the first LIMIT locations, rather than none.
+    // Short circuit if the search string is blank. Alternatively, we could allow it
+    // to proceed, and that would mean we return the first LIMIT locations,
+    // rather than none.
     if search_str.is_empty() {
         return Ok(Json(LocationsBody { locations: vec![] }));
     }

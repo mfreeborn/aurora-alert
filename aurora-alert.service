@@ -1,0 +1,13 @@
+[Unit]
+Description=Aurora Alert Web App
+
+[Service]
+WorkingDirectory=/home/pi/.aurora-alert/
+ExecStart=/home/pi/.aurora-alert/server
+
+Restart=always
+
+Environment=APP_ENVIRONMENT=production
+
+[Install]
+WantedBy=multi-user.target

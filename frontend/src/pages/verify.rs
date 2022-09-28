@@ -3,7 +3,7 @@ use yew::prelude::*;
 use crate::hooks::use_query_params;
 use crate::routes::{LinkHome, RedirectInternalServerError, RedirectNotFound};
 use crate::services::user::verify;
-use crate::types::user::{VerifyUserParams, VerifyUserWrapper};
+use crate::types::user::VerifyUserParams;
 
 #[function_component(Verify)]
 pub fn verify() -> Html {
@@ -17,7 +17,7 @@ pub fn verify() -> Html {
 
     let state = {
         yew_hooks::use_async_with_options(
-            async move { verify::<VerifyUserWrapper>(params.user_id, params.email).await },
+            async move { verify(params.user_id, params.email).await },
             yew_hooks::UseAsyncOptions::enable_auto(),
         )
     };

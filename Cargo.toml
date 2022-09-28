@@ -8,7 +8,7 @@ members = [
 [profile.dev.package.sqlx-macros]
 opt-level = 3
 
-[profile.release.package.aurora-alert-frontend]
+[profile.release.package.frontend]
 codegen-units = 1
 opt-level = "z"
 

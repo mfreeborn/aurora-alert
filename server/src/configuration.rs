@@ -51,7 +51,6 @@ pub struct DatabaseSettings {
 pub struct EmailSettings {
     pub username: String,
     pub password: String,
-    pub templates_dir: String,
 }
 
 /// The possible runtime environment for our application.

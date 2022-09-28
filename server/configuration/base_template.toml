@@ -1,0 +1,15 @@
+[application]
+host = "0.0.0.0"
+port = 9090
+open_weather_api_key =
+
+[email]
+username = 
+password = 
+
+[database]
+host = 
+port = 
+username = "postgres"
+password = 
+database_name = "aurora_alert"

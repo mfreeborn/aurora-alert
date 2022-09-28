@@ -65,7 +65,7 @@ impl Application {
             // attach the api endpoints
             .nest("/api", api_router(app_state))
             // attach the frontend SPA
-            .merge(SpaRouter::new("/assets", "../dist").index_file("index.html"))
+            .merge(SpaRouter::new("/assets", "./").index_file("index.html"))
             // attach tracing
             .layer(TraceLayer::new_for_http());
 

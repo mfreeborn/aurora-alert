@@ -176,8 +176,8 @@ impl EmailClient {
             .credentials(creds)
             .build();
 
-        let template_engine = templates::init(&config.templates_dir)
-            .expect("failed to initialise email template engine");
+        let template_engine =
+            templates::init().expect("failed to initialise email template engine");
 
         Self {
             mailer,

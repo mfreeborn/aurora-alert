@@ -1,5 +1,6 @@
 target/
 target-trunk/
-/dist/
+**/dist/
 .env
-configuration/
+server/configuration/*
+!server/configuration/*_template.toml

@@ -53,6 +53,16 @@ pub async fn get_weather(location_id: i32, api_key: &str) -> Result<Weather> {
         location_id, api_key
     );
 
-    let current_weather: Weather = reqwest::get(url).await?.json::<WeatherBody>().await?.into();
+    let client = reqwest::ClientBuilder::new()
+        .use_rustls_tls()
+        .build()
+        .unwrap();
+    let current_weather: Weather = client
+        .get(url)
+        .send()
+        .await?
+        .json::<WeatherBody>()
+        .await?
+        .into();
     Ok(current_weather)
 }
