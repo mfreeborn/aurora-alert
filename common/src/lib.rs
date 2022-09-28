@@ -30,3 +30,18 @@ pub struct ActivityDataPoint {
     pub timestamp: DateTimeUtc,
     pub value: f32,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ApiResponse {
+    success: bool,
+}
+
+impl ApiResponse {
+    pub fn success() -> Self {
+        Self { success: true }
+    }
+
+    pub fn failure() -> Self {
+        Self { success: true }
+    }
+}
